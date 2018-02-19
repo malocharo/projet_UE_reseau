@@ -101,40 +101,41 @@ int main(int argc, char**argv)
         perror("write");
         exit(1);
     }
-    if((nb_read = read(sock,buf,BUFSIZE))<0)
+    while(1)
     {
-        printf("erreur lors de la reception du msg");
-        perror("read");
-        exit(1);
-    }
-    if(atoi(buf) == 0)//envoi d'une demande d'affichage
-    {
-        //reception de la struct usr
-        if((nb_read = read(sock,&tab_aff[size_tab_aff].usr,sizeof(struct user)))<0)
-        {
-            printf("erreur lors de la reception du struct client");
-            perror("read");
-            exit(1);
-        }
-        //reception du numero de guichet
-        if((nb_read = read(sock,&tab_aff[size_tab_aff].nb_guichet,BUFSIZE))<0)
-        {
-            printf("erreur lors de la reception du struct client");
-            perror("read");
-            exit(1);
-        }
-        display();
-        size_tab_aff++;
-    }
-    else if(atoi(buf) == 1) //envoi d'une demande de retrait
-    {
-        if((nb_read = read(sock,buf,BUFSIZE))<0) //on attend le num du guichet
-        {
+        if ((nb_read = read(sock, buf, BUFSIZE)) < 0) {
             printf("erreur lors de la reception du msg");
             perror("read");
             exit(1);
         }
-        erase(buf);
+        if (atoi(buf) == 0)//envoi d'une demande d'affichage
+        {
+            //reception de la struct usr
+            if ((nb_read = read(sock, &tab_aff[size_tab_aff].usr, sizeof(struct user))) < 0) {
+                printf("erreur lors de la reception du struct client");
+                perror("read");
+                exit(1);
+            }
+            //reception du numero de guichet
+            if ((nb_read = read(sock, &tab_aff[size_tab_aff].nb_guichet, BUFSIZE)) < 0) {
+                printf("erreur lors de la reception du struct client");
+                perror("read");
+                exit(1);
+            }
+            size_tab_aff++;
+            display();
+
+        }
+        else if (atoi(buf) == 1) //envoi d'une demande de retrait
+        {
+            if ((nb_read = read(sock, buf, BUFSIZE)) < 0) //on attend le num du guichet
+            {
+                printf("erreur lors de la reception du msg");
+                perror("read");
+                exit(1);
+            }
+            erase(buf);
+        }
     }
 
 

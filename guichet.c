@@ -102,7 +102,7 @@ int main(int argc,char **argv) {
             }
             exit(1);
         }
-        else if((nb_read == 1) && (strcmp(buf_recv,"-1") != 0)) //"-1" => pas de client
+        else if((nb_read == 1) && (strcmp(buf_recv,"-1") == 0)) //"-1" => pas de client
         {
             printf("pas de client en attente\n");
             continue;
@@ -134,7 +134,7 @@ int main(int argc,char **argv) {
                 }
                 exit(1); //TODO handle & retry
             }
-            nb_write = write(sock,&ind_clt,sizeof(int)); //"2" => client recu, pas libre,afficher sur afficheur
+            nb_write = write(sock,&ind_clt,sizeof(int)); //"2" => envoie indice client pour enlever des afficheurs
             if(nb_write != sizeof(int))
             {
                 printf("erreur lors de l'envoie de la demande de client\n");

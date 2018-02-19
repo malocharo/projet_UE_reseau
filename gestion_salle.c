@@ -29,17 +29,17 @@ int isInQueue(struct user *usr,int brn_inf,int brn_sup)
     if(brn_inf>brn_sup)
     {
         for(i = brn_inf;i<MAX_USR;i++)
-            if(usr[i].nom != NULL) //TODO check si c'est la vraie vie
+            if(strlen(usr[i].nom) != 0)
                 return i;
         for(i=0;i<brn_sup;i++)
-            if(usr[i].nom != NULL)
+            if(strlen(usr[i].nom) != 0)
                 return i;
         return -1;
     }
     else
     {
         for(i=brn_inf;i<brn_sup;i++)
-            if(usr[i].nom!=NULL)
+            if(strlen(usr[i].nom)!=0)
                 return i;
         return -1;
     }
@@ -53,7 +53,7 @@ int main(int argc,char**argv)
     struct hostent* hote;
     int port;
     char buf[BUFSIZE];
-    int i;
+    int i,j;
     int retval;
     ssize_t nb_read;
     ssize_t nb_write;
@@ -70,7 +70,10 @@ int main(int argc,char**argv)
     struct addr_cmp sock_ght[MAX_GHT];
     int nb_ght = 0;
 
-    struct user usr_tab[MAX_USR] = {{NULL}}; //TODO check si c'est la vraie vie
+    struct user usr_tab[MAX_USR];
+    for(i = 0;i<MAX_USR;i++)
+        bzero(usr_tab[i].nom,BUFSIZE);
+
     int nb_usr = 0;
     int usr_brn_inf = 0;
     int usr_brn_sup = 0;
@@ -248,6 +251,14 @@ int main(int argc,char**argv)
                         }
                         else //il y a un client
                         {
+                            nb_write = write(sock_ght[i].sock,"1",1); //conf on envoie client
+                            if(nb_write!=1)
+                            {
+                                printf("erreur writ\n");
+                                perror("write");
+                                exit(-1);
+                            }
+
                            nb_write = write(sock_ght[i].sock,&usr_tab[clt],sizeof(struct user));
                            if(nb_write != sizeof(struct user))
                            {
@@ -274,18 +285,27 @@ int main(int argc,char**argv)
                             perror("read");
                             exit(-1);
                         }
-                        usr_tab[clt] = NULL;
+                        bzero(usr_tab[clt].nom,BUFSIZE);
                         nb_usr--;
                         usr_brn_inf++;
                         if(usr_brn_inf == MAX_USR-1)
                             usr_brn_inf = 0;
 
                         //TODO IMPORTANT faut enlever le guichet et le client de l'affichage
+                        for(j=0;j<nb_aff;j++)
+                        {
+                            nb_write = write(sock_aff[j].sock,&i,sizeof(int)); // on envoie i, peut être on devrais envoyer le num du guichet entrée par l'user
+                            if(nb_write != sizeof(int))
+                            {
+                                perror("erreur lors de l'envoi de l'indice guichet");
+                                exit(-1);
+                            }
+                        }
                     }
                 }
             }
 
-        break;
+        break; //a suppr avant de compil
     }
 
 
