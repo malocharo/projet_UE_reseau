@@ -23,6 +23,11 @@
 #define MAX_GHT 10
 #define MAX_USR 100
 
+struct addr_cmp{
+    struct sockaddr_in addr_cmp;
+    int sock;
+};
+
 int isInQueue(struct user *usr,int brn_inf,int brn_sup)
 {
     int i;
@@ -45,6 +50,13 @@ int isInQueue(struct user *usr,int brn_inf,int brn_sup)
     }
 
 }
+
+void remove_socket(int index,struct addr_cmp *addr,int* len_struct)
+{
+    addr[index] = addr[*len_struct-1];
+    *len_struct--;
+}
+
 int main(int argc,char**argv)
 {
     int sock_acceuil,sock_service;
@@ -60,10 +72,6 @@ int main(int argc,char**argv)
     int clt;
     int size_addr_clt = sizeof(addr_clt);
 
-    struct addr_cmp{
-        struct sockaddr_in addr_cmp;
-        int sock;
-    };
 
     struct addr_cmp sock_aff[MAX_AFF];
     int nb_aff = 0;
@@ -128,8 +136,8 @@ int main(int argc,char**argv)
         FD_ZERO(&rfds);
         FD_SET(STDIN_FILENO,&rfds); //clavier
         FD_SET(sock_acceuil,&rfds);
-        if(sock_brn.sock)
-            FD_SET(sock_brn.sock,&rfds); //socket de borne unique
+        FD_SET(sock_brn.sock,&rfds); //socket de borne unique
+
         for(i=0;i<nb_aff;i++)
             FD_SET(sock_aff[i].sock,&rfds); //socket des afficheurs
         for(i=0;i<nb_ght;i++)
@@ -205,14 +213,15 @@ int main(int argc,char**argv)
             }
             else if(strcmp(buf,"aff")==0)
             {
-               if(nb_aff<=MAX_AFF-1)
-               {
-                   sock_aff[nb_aff].sock = sock_service;
-                   sock_aff[nb_aff].addr_cmp = addr_clt;
-                   nb_aff++;
-               }
+                if(nb_aff<=MAX_AFF-1)
+                {
+                    sock_aff[nb_aff].sock = sock_service;
+                    sock_aff[nb_aff].addr_cmp = addr_clt;
+                    nb_aff++;
+                }
             }
         }
+
         if(FD_ISSET(sock_brn.sock,&rfds))
         {
             if((nb_read = read(sock_brn.sock,&usr_tab[usr_brn_sup],sizeof(struct user)))<0)
@@ -221,6 +230,13 @@ int main(int argc,char**argv)
                 perror("read");
                 exit(-1);
             }
+
+            if(nb_read == 0)// socket fermé par la borne
+            {
+                printf("deconnexion de la borne d'acceuil\n");
+
+            }
+
             usr_brn_sup++;
             nb_usr++;
             if(usr_brn_sup == MAX_USR-1)
@@ -229,14 +245,29 @@ int main(int argc,char**argv)
         for(i = 0;i<nb_aff;i++)
             if(FD_ISSET(sock_aff[i].sock,&rfds))
             {
-
+                if((nb_read = read(sock_aff[i].sock,buf,BUFSIZE))<0)
+                {
+                    printf("erreur lors de la reception d'un message de l'afficheur\n");
+                    perror("read");
+                    exit(-1);
+                }
+                if(nb_read == 0) //deconexion de l'afficheur
+                {
+                    printf("deconnexion de l'afficheur %s\n",inet_ntoa(sock_aff[i].addr_cmp.sin_addr));
+                    remove_socket(i,sock_aff,&nb_aff);
+                }
             }
 
         for(i=0;i<nb_ght;i++)
             if(FD_ISSET(sock_ght[i].sock,&rfds))
             {
-                if((nb_read = read(sock_ght[i].sock,buf,BUFSIZE)) < 1)
+                if((nb_read = read(sock_ght[i].sock,buf,BUFSIZE)) >= 0)// erreur
                 {
+                    if(nb_read == 0)// connexion fermée par le guichet
+                    {
+                        printf("deconnection du guichet %s\n",inet_ntoa(sock_ght[i].addr_cmp.sin_addr));
+                        remove_socket(i,sock_ght,&nb_ght);
+                    }
                     if(strcmp(buf,"1")==0)//demande d'un client
                     {
                         clt = isInQueue(usr_tab,usr_brn_inf,usr_brn_sup);
@@ -260,20 +291,20 @@ int main(int argc,char**argv)
                                 exit(-1);
                             }
 
-                           nb_write = write(sock_ght[i].sock,&usr_tab[clt],sizeof(struct user));
-                           if(nb_write != sizeof(struct user))
-                           {
-                               printf("erreur lors de l'envoi des donnes clients\n");
-                               perror("write");
-                               exit(-1);
-                           }
-                           nb_write = write(sock_ght[i].sock,&clt,sizeof(int));
-                           if(nb_write != sizeof(int))
-                           {
-                               printf("erreur lors de l'envoi de l'indice du client\n");
-                               perror("write");
-                               exit(-1);
-                           }
+                            nb_write = write(sock_ght[i].sock,&usr_tab[clt],sizeof(struct user));
+                            if(nb_write != sizeof(struct user))
+                            {
+                                printf("erreur lors de l'envoi des donnes clients\n");
+                                perror("write");
+                                exit(-1);
+                            }
+                            nb_write = write(sock_ght[i].sock,&clt,sizeof(int));
+                            if(nb_write != sizeof(int))
+                            {
+                                printf("erreur lors de l'envoi de l'indice du client\n");
+                                perror("write");
+                                exit(-1);
+                            }
 
                         }
                     }
@@ -304,6 +335,13 @@ int main(int argc,char**argv)
                         }
                     }
                 }
+                else
+                {
+                    printf("erreur lors de la reception d'un message venant du guicher %d\n",i);
+                    perror("read");
+                    exit(-1);
+                }
+
             }
 
         break; //a suppr avant de compil
