@@ -58,6 +58,7 @@ int main(int argc,char**argv)
     ssize_t nb_read;
     ssize_t nb_write;
     int clt;
+    int size_addr_clt = sizeof(addr_clt);
 
     struct addr_cmp{
         struct sockaddr_in addr_cmp;
@@ -113,7 +114,7 @@ int main(int argc,char**argv)
         exit(-1);
     }
 
-    if((sock_service = accept(sock_acceuil,(struct sockaddr*)&addr_clt,sizeof(addr_clt))) == -1)
+    if((sock_service = accept(sock_acceuil,(struct sockaddr*)&addr_clt,(socklen_t*)&size_addr_clt) == -1))
     {
         printf("erreur lors de l'accept\n");
         perror("accept");
@@ -173,7 +174,7 @@ int main(int argc,char**argv)
 
         if(FD_ISSET(sock_acceuil,&rfds))// nouvelle connexion gestion d erreur type envoie conf ?
         {
-            sock_service = accept(sock_acceuil,(struct sockaddr*)&addr_clt,sizeof(addr_clt));
+            sock_service = accept(sock_acceuil,(struct sockaddr*)&addr_clt,(socklen_t *)&size_addr_clt);
             if(sock_service == -1)
             {
                 printf("erreur lors de l'accept\n");
