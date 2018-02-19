@@ -1,0 +1,11 @@
+--A FAIRE order d'importance--
+
+- Affichage du guichet et du client sur l'affichage quand le client soit ce rendre au guichet
+
+- Gérer les deconnections dans gestion_salle.
+
+- Factoriser le code dans gestion_salle
+
+- tester les codes.
+
+- Faire de vrais commentaires

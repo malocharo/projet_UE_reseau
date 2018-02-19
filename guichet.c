@@ -14,6 +14,7 @@
 #include "user.h"
 #define DEBUG 08
 #define BUFSIZE 512
+#define BUFSIZE_MIN 127
 
 int appel_client()
 {
@@ -26,7 +27,7 @@ int appel_client()
 }
 
 int main(int argc,char **argv) {
-    int num_gui;
+    char num_gui[BUFSIZE_MIN];
     int sock;
     uint16_t port;
     struct hostent *hote = NULL;
@@ -45,7 +46,7 @@ int main(int argc,char **argv) {
         exit(-1);
     }
     printf("Bonjour, votre numero :\n");
-    scanf("%d",&num_gui);
+    scanf("%s",num_gui);
 
     if((sock = socket(AF_INET,SOCK_STREAM,0)) == -1)
     {
@@ -73,6 +74,13 @@ int main(int argc,char **argv) {
     }
     // envoie de l identifiant "ght" pour identification aupres du serv gestion
     if((nb_write = write(sock,guichet,strlen(guichet)) != strlen(guichet)))
+    {
+        printf("erreur à l'envoi de l'identifiant\n");
+        perror("write");
+        exit(1);
+    }
+
+    if((nb_write = write(sock,num_gui,strlen(num_gui)) != strlen(num_gui)))
     {
         printf("erreur à l'envoi de l'identifiant\n");
         perror("write");

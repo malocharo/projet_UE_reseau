@@ -26,6 +26,7 @@
 struct addr_cmp{
     struct sockaddr_in addr_cmp;
     int sock;
+    char num[256];// utilise par les guichets pour transmettre leurs numéros jusqu'a l'affichage
 };
 
 int isInQueue(struct user *usr,int brn_inf,int brn_sup)
@@ -122,12 +123,12 @@ int main(int argc,char**argv)
         exit(-1);
     }
 
-    if((sock_service = accept(sock_acceuil,(struct sockaddr*)&addr_clt,(socklen_t*)&size_addr_clt) == -1))
+   /* if((sock_service = accept(sock_acceuil,(struct sockaddr*)&addr_clt,(socklen_t*)&size_addr_clt) == -1))
     {
         printf("erreur lors de l'accept\n");
         perror("accept");
         exit(-1);
-    }
+    }*/
 
 
 
@@ -204,10 +205,18 @@ int main(int argc,char**argv)
             }
             else if(strcmp(buf,"ght")==0)
             {
+                if((nb_read = read(sock_ght[i].sock,buf,BUFSIZE))<0)
+                {
+                    printf("erreur lors de la reception du numero de guichet\n");
+                    perror("read");
+                    exit(-1);
+                }
+
                 if(nb_ght <= MAX_GHT -1)  //[0-9]
                 {
                     sock_ght[nb_ght].sock = sock_service;
                     sock_ght[nb_ght].addr_cmp = addr_clt;
+                    strcpy(sock_ght[i].num,buf); //numero du guichet
                     nb_ght++;
                 }
             }
@@ -326,8 +335,15 @@ int main(int argc,char**argv)
                         //TODO IMPORTANT faut enlever le guichet et le client de l'affichage
                         for(j=0;j<nb_aff;j++)
                         {
-                            nb_write = write(sock_aff[j].sock,&i,sizeof(int)); // on envoie i, peut être on devrais envoyer le num du guichet entrée par l'user
-                            if(nb_write != sizeof(int))
+                            if((nb_write = write(sock_aff[j].sock,"1",strlen("1"))) != strlen("1"))
+                            {
+                                printf("erreur lors de l envoie de la demande de suppression\n");
+                                perror("write");
+                                exit(-1);
+                            }
+
+                            nb_write = write(sock_aff[j].sock,sock_ght[i].num,strlen(sock_ght[i].num)); // on envoie le num
+                            if(nb_write != strlen(sock_ght[i].num))
                             {
                                 perror("erreur lors de l'envoi de l'indice guichet");
                                 exit(-1);

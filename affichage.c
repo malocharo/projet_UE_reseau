@@ -43,6 +43,7 @@ int erase(char *nb_gui)
         if(strcmp(nb_gui,tab_aff[i].nb_guichet) == 0)
         {
             strcpy(tab_aff[i].nb_guichet,tab_aff[size_tab_aff].nb_guichet);
+            tab_aff[i].usr = tab_aff[size_tab_aff].usr;
             size_tab_aff--;
             /*normalement il ne peut y avoir qu'une seule ligne par guichet,
              * sinon il faut sortir les deux fonctions suivantes du if*/
