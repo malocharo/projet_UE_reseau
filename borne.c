@@ -26,9 +26,10 @@ int main(int argc,char **argv)
     struct sockaddr_in addr_serv;
     struct hostent *hote = NULL;
     int port;
-    int uid = 0;
+    int uid;
     int boolean = 1;
     ssize_t nb_write;
+    ssize_t id_read;
 
 
 
@@ -72,6 +73,12 @@ int main(int argc,char **argv)
         exit(1);
     }
 
+    if((id_read = read(sock,&uid,sizeof(int)))<0)
+    {
+        printf("error reception uid\n");
+        perror("read");
+        exit(-1);
+    }
 
     while(boolean)
     {
@@ -88,11 +95,10 @@ int main(int argc,char **argv)
             exit(1);//TODO handle & retry
         }
 
-        if((nb_write = write(sock,usr.nom,strlen(usr.nom))) == strlen(usr.nom))
+        if((nb_write = write(sock,usr.nom,strlen(usr.nom))) != strlen(usr.nom))
         {
             printf("erreur envoie des donnees clients\n");
             exit(1);//TODO handle & retry
-
         }
 
         printf("donnees envoyees\n");

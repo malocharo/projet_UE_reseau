@@ -239,7 +239,9 @@ int main(int argc,char**argv)
                 exit(-1);
             }
 
-            if((nb_read = read(sock_brn.sock,&usr_tab[usr_brn_sup].nom,strlen(usr_tab[usr_brn_sup].nom))) != strlen(usr_tab[usr_brn_sup].nom))
+            uid = usr_tab[usr_brn_sup].id;
+
+            if((nb_read = read(sock_brn.sock,&usr_tab[usr_brn_sup].nom,strlen(usr_tab[usr_brn_sup].nom))) < 0)
             {
                 printf("error reception message\n");
                 perror("read");
