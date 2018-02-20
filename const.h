@@ -11,8 +11,9 @@
 
 #define GHT_IDENTIFIER "ght"
 #define GHT_ASKCLT "1"
-#define GHT_NOCLT "-1"
 #define GHT_CLTCONF "2"
+#define GHT_NOCLT "3"
+#define GHT_SIZE_CONST 1
 
 #define AFF_IDENTIFIER "aff"
 #define AFF_ASKRET "1"
@@ -24,7 +25,8 @@
 #define MAX_AFF 10
 #define MAX_GHT 10
 #define MAX_USR 100
-#define GEST_CONFCLT "1"
+#define GEST_CONFCLT "4"
+#define GEST_NOCLT -1
 
 
 #endif //PROJET_UE_RESEAU_CONST_H

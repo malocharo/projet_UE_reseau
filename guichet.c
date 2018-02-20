@@ -101,24 +101,21 @@ int main(int argc,char **argv) {
             exit(1); //TODO handle & retry
         }
 
-        nb_read = read(sock,buf_recv,BUFSIZE);
+        nb_read = read(sock,buf_recv,GHT_SIZE_CONST); // égal a 1 sinon pas de limite de message toussa
         if(nb_read<0)
         {
             printf("erreur lors de la reception\n");
-            if(nb_read==-1)
-            {
-                perror("recept");
-            }
+            perror("recept");
             exit(1);
         }
-        else if((nb_read == 1) && (strcmp(buf_recv,GHT_NOCLT) == 0)) //"-1" => pas de client
+        else if((nb_read == 1) && (strcmp(buf_recv,GHT_NOCLT) == 0)) //"3" => pas de client
         {
             printf("pas de client en attente\n");
             continue;
         }
-        else // client
+        else if(strcmp(buf_recv,GEST_CONFCLT) == 0) // il y'a un client
         {
-            if((nb_read = read(sock,&usr,sizeof(usr)))<0)
+            if((nb_read = read(sock,&usr.id,sizeof(usr.id)))<0)
             {
                 printf("erreur reception donne client\n");
                 perror("recp");
@@ -130,8 +127,21 @@ int main(int argc,char **argv) {
                 perror("recp");
                 exit(-1);
             }
+            if((nb_read = read(sock,&usr.nom,BUFSIZE))<0)
+            {
+                printf("erreur reception donne client\n");
+                perror("recp");
+                exit(-1);
+            }
 
             printf("client : %s %d\n",usr.nom,usr.id);
+            printf("Ecrire 'ok' pour valider la présence du client\n");
+            scanf("%s",&buf_recv);
+            while(strcmp(buf_recv,"ok") != 0)
+            {
+                printf("Ecrire 'ok' pour valider la présence du client\n");
+                scanf("%s",&buf_recv);
+            }
 
             nb_write = write(sock,GHT_CLTCONF,strlen(GHT_CLTCONF)); //"2" => client recu, pas libre,afficher sur afficheur
             if(nb_write != 1)

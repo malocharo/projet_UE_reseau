@@ -62,6 +62,7 @@ int main(int argc, char**argv)
     struct sockaddr_in addr_serv;
     char buf[BUFSIZE];
     ssize_t nb_write;
+    ssize_t len_name_clt;
 
 
     if(argc < 2)
@@ -104,15 +105,27 @@ int main(int argc, char**argv)
     }
     while(1)
     {
-        if ((nb_read = read(sock, buf, BUFSIZE)) < 0) {
+        if ((nb_read = read(sock, buf, GHT_SIZE_CONST)) < 0) {
             printf("erreur lors de la reception du msg");
             perror("read");
             exit(1);
         }
         if (strcmp(buf,AFF_ASKADD) == 0)//envoi d'une demande d'affichage
         {
-            //reception de la struct usr
-            if ((nb_read = read(sock, &tab_aff[size_tab_aff].usr, sizeof(struct user))) < 0) {
+            //reception de l id
+            if ((nb_read = read(sock, &tab_aff[size_tab_aff].usr.id, sizeof(int))) != sizeof(int)) {
+                printf("erreur lors de la reception du struct client");
+                perror("read");
+                exit(1);
+            }
+            //reception taille du nom
+            if ((nb_read = read(sock,&len_name_clt, sizeof(int))) != sizeof(int)) {
+                printf("erreur lors de la reception du struct client");
+                perror("read");
+                exit(1);
+            }
+            //reception du nom du client
+            if ((nb_read = read(sock,&tab_aff[size_tab_aff].usr.nom,len_name_clt)) != len_name_clt) {
                 printf("erreur lors de la reception du struct client");
                 perror("read");
                 exit(1);
