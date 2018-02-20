@@ -26,6 +26,7 @@
 #define MAX_GHT 10
 #define MAX_USR 100
 #define GEST_CONFCLT "4"
+#define GEST_NOCLT -1
 
 
 #endif //PROJET_UE_RESEAU_CONST_H

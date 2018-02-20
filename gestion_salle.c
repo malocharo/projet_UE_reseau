@@ -294,7 +294,7 @@ int main(int argc,char**argv)
                     if(strcmp(buf,GHT_ASKCLT)==0)//demande d'un client
                     {
                         clt = isInQueue(usr_tab,usr_brn_inf,usr_brn_sup);
-                        if(clt == GHT_NOCLT)//pas de client
+                        if(clt == GEST_NOCLT)//pas de client
                         {
                             nb_write = write(sock_ght[i].sock,GHT_NOCLT,strlen(GHT_NOCLT));
                             if(nb_write!=strlen(GHT_NOCLT))
