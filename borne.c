@@ -28,7 +28,9 @@ int main(int argc,char **argv)
     int uid = 0;
     int bool = 1;
     ssize_t nb_write;
+    ssize_t id_read;
     char *borne = "brn";
+    int retour;
 
 
     struct user usr;
@@ -71,6 +73,12 @@ int main(int argc,char **argv)
         exit(1);
     }
 
+    if((id_read = read(sock,&uid,sizeof(struct user)))<0)
+    {
+        printf("error reception uid\n");
+        perror("read");
+        exit(-1);
+    }
 
     while(bool)
     {
@@ -81,12 +89,18 @@ int main(int argc,char **argv)
         usr.id = uid;
         uid++;
 
-        if((nb_write = write(sock,&usr,sizeof(usr))) == -1)
+        if((nb_write = write(sock,&usr.id,sizeof(int))) == -1)
         {
-            printf("erreur envoie des donnees clients\n");
+            printf("erreur envoie des donnees clients(id)\n");
             exit(1);//TODO handle & retry
-
         }
+
+        if((nb_write = write(sock,usr.nom,strlen(usr.nom))) != strlen(usr.nom))
+        {
+            printf("erreur envoie des donnees clients(nom)\n");
+            exit(1);//TODO handle & retry
+        }
+
         printf("donnees envoyees\n");
     }
     close(sock);

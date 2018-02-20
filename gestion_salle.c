@@ -72,7 +72,7 @@ int main(int argc,char**argv)
     ssize_t nb_write;
     int clt;
     int size_addr_clt = sizeof(addr_clt);
-
+    int uid = 0;
 
     struct addr_cmp sock_aff[MAX_AFF];
     int nb_aff = 0;
@@ -200,6 +200,13 @@ int main(int argc,char**argv)
 
             if(strcmp(buf,"brn")==0)
             {
+                if((nb_write = write(sock_service,&uid, sizeof(int)) != sizeof(int)))
+                {
+                    printf("erreur à l'envoi de l'identifiant\n");
+                    perror("write");
+                    exit(1);
+                }
+
                 sock_brn.sock = sock_service;
                 sock_brn.addr_cmp = addr_clt;
             }
@@ -233,7 +240,14 @@ int main(int argc,char**argv)
 
         if(FD_ISSET(sock_brn.sock,&rfds))
         {
-            if((nb_read = read(sock_brn.sock,&usr_tab[usr_brn_sup],sizeof(struct user)))<0)
+            if((nb_read = read(sock_brn.sock,&usr_tab[usr_brn_sup].id,sizeof(int)))<0)
+            {
+                printf("error reception message\n");
+                perror("read");
+                exit(-1);
+            }
+
+            if((nb_read = read(sock_brn.sock,&usr_tab[usr_brn_sup].nom,strlen(usr_tab[usr_brn_sup].nom))) != strlen(usr_tab[usr_brn_sup].nom))
             {
                 printf("error reception message\n");
                 perror("read");
@@ -243,7 +257,6 @@ int main(int argc,char**argv)
             if(nb_read == 0)// socket fermé par la borne
             {
                 printf("deconnexion de la borne d'acceuil\n");
-
             }
 
             usr_brn_sup++;
@@ -251,6 +264,7 @@ int main(int argc,char**argv)
             if(usr_brn_sup == MAX_USR-1)
                 usr_brn_sup = 0;
         }
+
         for(i = 0;i<nb_aff;i++)
             if(FD_ISSET(sock_aff[i].sock,&rfds))
             {
