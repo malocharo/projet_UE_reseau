@@ -16,8 +16,9 @@
 #include <memory.h>
 
 #include "user.h"
+#include "const.h"
 
-#define BUFSIZE 256
+
 
 int main(int argc,char **argv)
 {
@@ -26,9 +27,9 @@ int main(int argc,char **argv)
     struct hostent *hote = NULL;
     int port;
     int uid = 0;
-    int bool = 1;
+    int boolean = 1;
     ssize_t nb_write;
-    char *borne = "brn";
+
 
 
     struct user usr;
@@ -64,7 +65,7 @@ int main(int argc,char **argv)
         exit(-1);
     }
     // envoie de "brn" pour identifier la connexion comme borne pour la gestion
-    if((nb_write = write(sock,borne,strlen(borne)) != strlen(borne)))
+    if((nb_write = write(sock,BRN_IDENTIFIER,strlen(BRN_IDENTIFIER)) != strlen(BRN_IDENTIFIER)))
     {
         printf("erreur à l'envoi de l'identifiant\n");
         perror("write");
@@ -72,11 +73,11 @@ int main(int argc,char **argv)
     }
 
 
-    while(bool)
+    while(boolean)
     {
         printf("Votre nom svp :\n");
         scanf("%s",usr.nom);
-        if(strcmp(usr.nom,"exit") == 0)// si le nom est "exit" on quitte le borne
+        if(strcmp(usr.nom,BRN_EXIT) == 0)// si le nom est "exit" on quitte le borne
             break;
         usr.id = uid;
         uid++;

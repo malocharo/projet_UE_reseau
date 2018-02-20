@@ -16,8 +16,8 @@
 #include <memory.h>
 
 #include "user.h"
+#include "const.h"
 
-#define BUFSIZE 256
 
 struct aff{
     struct user usr;
@@ -62,7 +62,7 @@ int main(int argc, char**argv)
     struct sockaddr_in addr_serv;
     char buf[BUFSIZE];
     ssize_t nb_write;
-    char *affichage = "aff";
+
 
     if(argc < 2)
     {
@@ -96,7 +96,7 @@ int main(int argc, char**argv)
         exit(-1);
     }
     //envoie de l'identifant "aff" pour identification par le serv gestion
-    if((nb_write = write(sock,affichage,strlen(affichage)) != strlen(affichage)))
+    if((nb_write = write(sock,AFF_IDENTIFIER,strlen(AFF_IDENTIFIER)) != strlen(AFF_IDENTIFIER)))
     {
         printf("erreur à l'envoi de l'identifiant\n");
         perror("write");
@@ -109,7 +109,7 @@ int main(int argc, char**argv)
             perror("read");
             exit(1);
         }
-        if (atoi(buf) == 0)//envoi d'une demande d'affichage
+        if (strcmp(buf,AFF_ASKADD) == 0)//envoi d'une demande d'affichage
         {
             //reception de la struct usr
             if ((nb_read = read(sock, &tab_aff[size_tab_aff].usr, sizeof(struct user))) < 0) {
@@ -127,7 +127,7 @@ int main(int argc, char**argv)
             display();
 
         }
-        else if (atoi(buf) == 1) //envoi d'une demande de retrait
+        else if (strcmp(buf,AFF_ASKRET) == 0) // "1" => envoi d'une demande de retrait
         {
             if ((nb_read = read(sock, buf, BUFSIZE)) < 0) //on attend le num du guichet
             {

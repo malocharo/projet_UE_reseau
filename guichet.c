@@ -12,9 +12,9 @@
 #include <memory.h>
 
 #include "user.h"
+#include "const.h"
 #define DEBUG 08
-#define BUFSIZE 512
-#define BUFSIZE_MIN 127
+
 
 int appel_client()
 {
@@ -37,7 +37,7 @@ int main(int argc,char **argv) {
     char buf_recv[BUFSIZE];
     int dmd_lib = 1;
     struct user usr;
-    char *guichet = "ght";
+
     int ind_clt;
 
     if(argc < 2)
@@ -73,7 +73,7 @@ int main(int argc,char **argv) {
         exit(-1);
     }
     // envoie de l identifiant "ght" pour identification aupres du serv gestion
-    if((nb_write = write(sock,guichet,strlen(guichet)) != strlen(guichet)))
+    if((nb_write = write(sock,GHT_IDENTIFIER,strlen(GHT_IDENTIFIER)) != strlen(GHT_IDENTIFIER)))
     {
         printf("erreur à l'envoi de l'identifiant\n");
         perror("write");
@@ -89,8 +89,8 @@ int main(int argc,char **argv) {
 
     while(appel_client())
     {
-        nb_write = write(sock,"1",1); //"1" => demande de client , je suis libre
-        if(nb_write != 1)
+        nb_write = write(sock,GHT_ASK_CLT,strlen(GHT_ASK_CLT)); //"1" => demande de client , je suis libre
+        if(nb_write != strlen(GHT_ASK_CLT))
         {
             printf("erreur lors de l'envoie de la demande de client\n");
             if(nb_write == -1)
@@ -110,7 +110,7 @@ int main(int argc,char **argv) {
             }
             exit(1);
         }
-        else if((nb_read == 1) && (strcmp(buf_recv,"-1") == 0)) //"-1" => pas de client
+        else if((nb_read == 1) && (strcmp(buf_recv,GHT_NOCLT) == 0)) //"-1" => pas de client
         {
             printf("pas de client en attente\n");
             continue;
@@ -132,7 +132,7 @@ int main(int argc,char **argv) {
 
             printf("client : %s %d\n",usr.nom,usr.id);
 
-            nb_write = write(sock,"2",1); //"2" => client recu, pas libre,afficher sur afficheur
+            nb_write = write(sock,GHT_CLTCONF,strlen(GHT_CLTCONF)); //"2" => client recu, pas libre,afficher sur afficheur
             if(nb_write != 1)
             {
                 printf("erreur lors de l'envoie de la demande de client\n");
@@ -142,7 +142,7 @@ int main(int argc,char **argv) {
                 }
                 exit(1); //TODO handle & retry
             }
-            nb_write = write(sock,&ind_clt,sizeof(int)); //"2" => envoie indice client pour enlever des afficheurs
+            nb_write = write(sock,&ind_clt,sizeof(int)); //=> envoie indice client pour enlever des afficheurs
             if(nb_write != sizeof(int))
             {
                 printf("erreur lors de l'envoie de la demande de client\n");
