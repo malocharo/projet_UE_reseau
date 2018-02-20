@@ -11,6 +11,7 @@
 #include <strings.h>
 #include <memory.h>
 
+
 #include "user.h"
 #include "const.h"
 #define DEBUG 08
@@ -89,8 +90,8 @@ int main(int argc,char **argv) {
 
     while(appel_client())
     {
-        nb_write = write(sock,GHT_ASK_CLT,strlen(GHT_ASK_CLT)); //"1" => demande de client , je suis libre
-        if(nb_write != strlen(GHT_ASK_CLT))
+        nb_write = write(sock,GHT_ASKCLT,strlen(GHT_ASKCLT)); //"1" => demande de client , je suis libre
+        if(nb_write != strlen(GHT_ASKCLT))
         {
             printf("erreur lors de l'envoie de la demande de client\n");
             if(nb_write == -1)

@@ -82,12 +82,19 @@ int main(int argc,char **argv)
         usr.id = uid;
         uid++;
 
-        if((nb_write = write(sock,&usr,sizeof(usr))) == -1)
+        if((nb_write = write(sock,&usr.id,sizeof(int))) == -1)
+        {
+            printf("erreur envoie des donnees clients\n");
+            exit(1);//TODO handle & retry
+        }
+
+        if((nb_write = write(sock,usr.nom,strlen(usr.nom))) == strlen(usr.nom))
         {
             printf("erreur envoie des donnees clients\n");
             exit(1);//TODO handle & retry
 
         }
+
         printf("donnees envoyees\n");
     }
     close(sock);
