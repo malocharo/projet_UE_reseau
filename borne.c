@@ -89,6 +89,7 @@ int main(int argc,char **argv)
         usr.id = uid;
         uid++;
 
+        //En deux fois car on ne peut pas avec une struct
         if((nb_write = write(sock,&usr.id,sizeof(int))) == -1)
         {
             printf("erreur envoie des donnees clients(id)\n");
