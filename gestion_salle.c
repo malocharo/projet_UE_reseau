@@ -145,7 +145,7 @@ int main(int argc,char**argv)
         }
 
         // touche clavier "i", on affiche les afficheurs et les guichets ainsi que leurs adresses
-        // touche clavier "u", on afficher des infos sur la liste d'attente
+        // touche clavier "l", on afficher des infos sur la liste d'attente
         // touche clavier "q", on quitte l'application
         if(FD_ISSET(STDIN_FILENO,&rfds))
         {
@@ -163,11 +163,19 @@ int main(int argc,char**argv)
                     printf("afficheur  %s   %d\n",inet_ntoa(sock_aff[i].addr_cmp.sin_addr),sock_aff[i].addr_cmp.sin_port);
                 for(i = 0;i<nb_ght;i++)
                     printf("guichet    %s   %d\n",inet_ntoa(sock_ght[i].addr_cmp.sin_addr),sock_ght[i].addr_cmp.sin_port);
-                continue;
             }
             if(strcmp(buf,"q")==0)
             {
                 exit(0); // ouais bon faut faire mieux sans doute
+            }
+            if(strcmp(buf,"l") == 0)
+            {
+                printf("Il y'a %d personnes en attente\n",nb_usr);
+                for(i = 0;i<NB_MAX_PENDINGQUEUE;i++)
+                {
+                    if(strlen(usr_tab[i].nom) != 0)
+                        printf("%s%d\n",usr_tab[i].nom,usr_tab[i].id);
+                }
             }
         }
 
@@ -239,7 +247,7 @@ int main(int argc,char**argv)
                 exit(-1);
             }
 
-            if((nb_read = read(sock_brn.sock,&usr_tab[usr_brn_sup].nom,strlen(usr_tab[usr_brn_sup].nom))) != strlen(usr_tab[usr_brn_sup].nom))
+            if((nb_read = read(sock_brn.sock,&usr_tab[usr_brn_sup].nom,BUFSIZE)) < 0)
             {
                 printf("error reception message\n");
                 perror("read");

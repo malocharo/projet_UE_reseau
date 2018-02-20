@@ -1,6 +1,6 @@
 --A FAIRE order d'importance--
 
-- Affichage du guichet et du client sur l'affichage quand le client soit ce rendre au guichet
+- Affichage du guichet et du client sur l'affichage quand le client soit ce rendre au guichet[FAIT]
 
 - Gérer les deconnections dans gestion_salle.
 
