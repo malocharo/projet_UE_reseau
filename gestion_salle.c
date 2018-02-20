@@ -239,16 +239,40 @@ int main(int argc,char**argv)
                 exit(-1);
             }
 
-            if((nb_read = read(sock_brn.sock,&usr_tab[usr_brn_sup].nom,strlen(usr_tab[usr_brn_sup].nom))) != strlen(usr_tab[usr_brn_sup].nom))
+            if((nb_read = read(sock_brn.sock,&usr_tab[usr_brn_sup].nom,strlen(usr_tab[usr_brn_sup].nom)))<0)
             {
                 printf("error reception message\n");
                 perror("read");
                 exit(-1);
             }
 
+            //Si c'est la fin de la journée (On coupe proprement)
+            if(strcmp(usr_tab[usr_brn_sup].nom,BRN_EXIT) == 0){
+
+                //On verrifie que qu'il n'y a plus de client
+                if(nb_usr == 0){
+
+                    for(i=0;i<nb_ght;i++){
+                        nb_write = write(sock_ght[i].sock,GHT_EXIT,strlen(GHT_EXIT));
+                        if(nb_write!=1)
+                        {
+                            printf("erreur writ\n");
+                            perror("write");
+                            exit(-1);
+                        }
+                    }
+
+                } else{//il reste des clients
+                    //la borne est fermer
+                }
+
+
+            }
+
             if(nb_read == 0)// socket fermé par la borne
             {
                 printf("deconnexion de la borne d'acceuil\n");
+                /*Si on ferme la borne d'accueil on regarde si on a toujours de client*/
             }
 
             usr_brn_sup++;

@@ -84,8 +84,23 @@ int main(int argc,char **argv)
     {
         printf("Votre nom svp :\n");
         scanf("%s",usr.nom);
-        if(strcmp(usr.nom,BRN_EXIT) == 0)// si le nom est "exit" on quitte le borne
+
+        if(strcmp(usr.nom,BRN_EXIT) == 0){// si le nom est "exit" on quitte le borne
+
+            if((nb_write = write(sock,&usr.id,sizeof(int))) == -1)
+            {
+                printf("erreur envoie des donnees clients\n");
+                exit(1);//TODO handle & retry
+            }
+
+            if((nb_write = write(sock,BRN_EXIT,strlen(BRN_EXIT))) != strlen(BRN_EXIT))
+            {
+                printf("erreur envoie des donnees clients\n");
+                exit(1);//TODO handle & retry
+            }
+
             break;
+        }
         usr.id = uid;
         uid++;
 
