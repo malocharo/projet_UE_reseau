@@ -230,6 +230,8 @@ int main(int argc,char**argv)
 
         if(FD_ISSET(sock_brn.sock,&rfds))
         {
+
+            //recive id,name
             if((nb_read = read(sock_brn.sock,&usr_tab[usr_brn_sup].id,sizeof(int)))<0)
             {
                 printf("error reception message\n");
