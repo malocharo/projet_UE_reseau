@@ -17,16 +17,14 @@
 #include <sys/select.h>
 
 #include "user.h"
+#include "const.h"
 
-#define BUFSIZE 256
-#define MAX_AFF 10
-#define MAX_GHT 10
-#define MAX_USR 100
+
 
 struct addr_cmp{
     struct sockaddr_in addr_cmp;
     int sock;
-    char num[256];// utilise par les guichets pour transmettre leurs numéros jusqu'a l'affichage
+    char num[BUFSIZE];// utilise par les guichets pour transmettre leurs numéros jusqu'a l'affichage
 };
 
 int isInQueue(struct user *usr,int brn_inf,int brn_sup)
@@ -116,20 +114,12 @@ int main(int argc,char**argv)
         exit(1);
     }
 
-    if(listen(sock_acceuil,10)==-1)
+    if(listen(sock_acceuil,NB_MAX_PENDINGQUEUE)==-1)
     {
         printf("erreur lors de la mise en place du listen\n");
         perror("listen");
         exit(-1);
     }
-
-   /* if((sock_service = accept(sock_acceuil,(struct sockaddr*)&addr_clt,(socklen_t*)&size_addr_clt) == -1))
-    {
-        printf("erreur lors de l'accept\n");
-        perror("accept");
-        exit(-1);
-    }*/
-
 
 
     while(1)
@@ -198,7 +188,7 @@ int main(int argc,char**argv)
                 exit(-1);
             }
 
-            if(strcmp(buf,"brn")==0)
+            if(strcmp(buf,BRN_IDENTIFIER)==0)
             {
                 if((nb_write = write(sock_service,&uid, sizeof(int)) != sizeof(int)))
                 {
@@ -210,7 +200,7 @@ int main(int argc,char**argv)
                 sock_brn.sock = sock_service;
                 sock_brn.addr_cmp = addr_clt;
             }
-            else if(strcmp(buf,"ght")==0)
+            else if(strcmp(buf,GHT_IDENTIFIER)==0)
             {
                 if((nb_read = read(sock_ght[i].sock,buf,BUFSIZE))<0)
                 {
@@ -227,7 +217,7 @@ int main(int argc,char**argv)
                     nb_ght++;
                 }
             }
-            else if(strcmp(buf,"aff")==0)
+            else if(strcmp(buf,AFF_IDENTIFIER)==0)
             {
                 if(nb_aff<=MAX_AFF-1)
                 {
@@ -291,12 +281,12 @@ int main(int argc,char**argv)
                         printf("deconnection du guichet %s\n",inet_ntoa(sock_ght[i].addr_cmp.sin_addr));
                         remove_socket(i,sock_ght,&nb_ght);
                     }
-                    if(strcmp(buf,"1")==0)//demande d'un client
+                    if(strcmp(buf,GHT_ASKCLT)==0)//demande d'un client
                     {
                         clt = isInQueue(usr_tab,usr_brn_inf,usr_brn_sup);
-                        if(clt == -1)//pas de client
+                        if(clt == GHT_NOCLT)//pas de client
                         {
-                            nb_write = write(sock_ght[i].sock,"-1",1);
+                            nb_write = write(sock_ght[i].sock,GHT_NOCLT,strlen(GHT_NOCLT));
                             if(nb_write!=1)
                             {
                                 printf("erreur writ\n");
@@ -306,7 +296,7 @@ int main(int argc,char**argv)
                         }
                         else //il y a un client
                         {
-                            nb_write = write(sock_ght[i].sock,"1",1); //conf on envoie client
+                            nb_write = write(sock_ght[i].sock,GEST_CONFCLT,strlen(GEST_CONFCLT)); //conf on envoie client
                             if(nb_write!=1)
                             {
                                 printf("erreur writ\n");
@@ -331,7 +321,7 @@ int main(int argc,char**argv)
 
                         }
                     }
-                    else if(strcmp(buf,"2") == 0)//confirmation reception client
+                    else if(strcmp(buf,GHT_CLTCONF) == 0)//"2" =>confirmation reception client
                     {
                         nb_read = read(sock_ght[i].sock,&clt,sizeof(int));
                         if(nb_read != sizeof(int))
@@ -349,7 +339,7 @@ int main(int argc,char**argv)
                         //TODO IMPORTANT faut enlever le guichet et le client de l'affichage
                         for(j=0;j<nb_aff;j++)
                         {
-                            if((nb_write = write(sock_aff[j].sock,"1",strlen("1"))) != strlen("1"))
+                            if((nb_write = write(sock_aff[j].sock,AFF_ASKRET,strlen(AFF_ASKRET))) != strlen(AFF_ASKRET))
                             {
                                 printf("erreur lors de l envoie de la demande de suppression\n");
                                 perror("write");
