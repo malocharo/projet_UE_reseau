@@ -173,7 +173,7 @@ int main(int argc,char**argv)
 
         if(FD_ISSET(sock_acceuil,&rfds))// nouvelle connexion gestion d erreur type envoie conf ?
         {
-            sock_service = accept(sock_acceuil,(struct sockaddr*)&addr_clt,(socklen_t *)&size_addr_clt);
+            sock_service = accept(sock_acceuil,(struct sockaddr*)&addr_clt,(struct socklen_t *)&size_addr_clt);
             if(sock_service == -1)
             {
                 printf("erreur lors de l'accept\n");
@@ -231,7 +231,7 @@ int main(int argc,char**argv)
         if(FD_ISSET(sock_brn.sock,&rfds))
         {
 
-            //recive id,name
+            //receive id,name
             if((nb_read = read(sock_brn.sock,&usr_tab[usr_brn_sup].id,sizeof(int)))<0)
             {
                 printf("error reception message\n");
@@ -289,7 +289,7 @@ int main(int argc,char**argv)
                         if(clt == GHT_NOCLT)//pas de client
                         {
                             nb_write = write(sock_ght[i].sock,GHT_NOCLT,strlen(GHT_NOCLT));
-                            if(nb_write!=1)
+                            if(nb_write!=strlen(GHT_NOCLT))
                             {
                                 printf("erreur writ\n");
                                 perror("write");
@@ -298,16 +298,44 @@ int main(int argc,char**argv)
                         }
                         else //il y a un client
                         {
+                            for(i = 0;i<nb_aff;i++) // on affiche le client ainsi que son guichet attribué
+                            {
+                                if((nb_write = write(sock_aff[i].sock,AFF_ASKADD,strlen(AFF_ASKADD))) != strlen(AFF_ASKADD))
+                                {
+                                    printf("erreur lors de l'envoie du code de demande d'affichage a l'afficheur %d\n",i);
+                                    perror("write");
+                                    exit(-1);
+                                }
+                                if((nb_write = write(sock_aff[i].sock,&usr_tab[clt].id,sizeof(int))) !=  sizeof(int))
+                                {
+                                    printf("erreur lors de l'envoie de l'id du client %d a l'afficheur %d\n",clt,i);
+                                    perror("write");
+                                    exit(-1);
+                                }
+                                if((nb_write = write(sock_aff[i].sock,strlen(usr_tab[clt].nom),strlen(usr_tab[clt].nom))) !=  strlen(usr_tab[clt].nom))
+                                {
+                                    printf("erreur lors de l'envoie de la taille du nom du client %d a l'afficheur %d\n",clt,i);
+                                    perror("write");
+                                    exit(-1);
+                                }
+                                if((nb_write = write(sock_aff[i].sock,sock_ght[i].num,strlen(sock_ght[i].num))) !=  strlen(sock_ght[i].num))
+                                {
+                                    printf("erreur lors de l'envoie de la taille du nom du client %d a l'afficheur %d\n",clt,i);
+                                    perror("write");
+                                    exit(-1);
+                                }
+                            }
+
                             nb_write = write(sock_ght[i].sock,GEST_CONFCLT,strlen(GEST_CONFCLT)); //conf on envoie client
-                            if(nb_write!=1)
+                            if(nb_write!=strlen(GEST_CONFCLT))
                             {
                                 printf("erreur writ\n");
                                 perror("write");
                                 exit(-1);
                             }
 
-                            nb_write = write(sock_ght[i].sock,&usr_tab[clt],sizeof(struct user));
-                            if(nb_write != sizeof(struct user))
+                            nb_write = write(sock_ght[i].sock,&usr_tab[clt].id,sizeof(int));
+                            if(nb_write != sizeof(int))
                             {
                                 printf("erreur lors de l'envoi des donnes clients\n");
                                 perror("write");
@@ -315,6 +343,13 @@ int main(int argc,char**argv)
                             }
                             nb_write = write(sock_ght[i].sock,&clt,sizeof(int));
                             if(nb_write != sizeof(int))
+                            {
+                                printf("erreur lors de l'envoi de l'indice du client\n");
+                                perror("write");
+                                exit(-1);
+                            }
+                            nb_write = write(sock_ght[i].sock,&usr_tab[clt].nom,strlen(usr_tab[clt].nom));
+                            if(nb_write != strlen(usr_tab[clt].nom))
                             {
                                 printf("erreur lors de l'envoi de l'indice du client\n");
                                 perror("write");

@@ -88,7 +88,7 @@ int main(int argc,char **argv)
             exit(1);//TODO handle & retry
         }
 
-        if((nb_write = write(sock,usr.nom,strlen(usr.nom))) == strlen(usr.nom))
+        if((nb_write = write(sock,usr.nom,strlen(usr.nom))) != strlen(usr.nom))
         {
             printf("erreur envoie des donnees clients\n");
             exit(1);//TODO handle & retry
