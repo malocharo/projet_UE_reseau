@@ -81,6 +81,7 @@ int main(int argc,char **argv) {
         exit(1);
     }
 
+    //Envoye son numéro
     if((nb_write = write(sock,num_gui,strlen(num_gui)) != strlen(num_gui)))
     {
         printf("erreur à l'envoi de l'identifiant\n");
@@ -108,11 +109,19 @@ int main(int argc,char **argv) {
             perror("recept");
             exit(1);
         }
-        else if((nb_read == 1) && (strcmp(buf_recv,GHT_NOCLT) == 0)) //"3" => pas de client
+        else if((nb_read == GHT_SIZE_CONST) && (strcmp(buf_recv,GHT_NOCLT) == 0)) //"3" => pas de client
         {
             printf("pas de client en attente\n");
             continue;
         }
+
+        else if((nb_read == GHT_SIZE_CONST) && (strcmp(buf_recv,GHT_EXIT) == 0))//"3" => pas de client + exit    !On ferme donc le guichet!
+        {
+            printf("pas de client en attente et c'est la fin !\n");
+            close(sock);
+            return 0;
+        }
+
         else if(strcmp(buf_recv,GEST_CONFCLT) == 0) // il y'a un client
         {
             if((nb_read = read(sock,&usr.id,sizeof(int)))<0)

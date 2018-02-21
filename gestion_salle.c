@@ -71,6 +71,7 @@ int main(int argc,char**argv)
     int clt;
     int size_addr_clt = sizeof(addr_clt);
     int uid = 0;
+    int brn_flag_exit = BRN_EXIT_NO_SET;//Si la borne à exit ou non
 
     struct addr_cmp sock_aff[MAX_AFF];
     int nb_aff = 0;
@@ -237,6 +238,7 @@ int main(int argc,char**argv)
             }
         }
 
+        //Gestion de la borne
         if(FD_ISSET(sock_brn.sock,&rfds))
         {
 
@@ -257,25 +259,7 @@ int main(int argc,char**argv)
 
             //Si c'est la fin de la journée (On coupe proprement)
             if(strcmp(usr_tab[usr_brn_sup].nom,BRN_EXIT) == 0){
-
-                //On verrifie que qu'il n'y a plus de client
-                if(nb_usr == 0){
-
-                    for(i=0;i<nb_ght;i++){
-                        nb_write = write(sock_ght[i].sock,GHT_EXIT,strlen(GHT_EXIT));
-                        if(nb_write!=strlen(GHT_EXIT))
-                        {
-                            printf("erreur writ\n");
-                            perror("write");
-                            exit(-1);
-                        }
-                    }
-
-                } else{//il reste des clients
-                    //la borne est fermer
-                }
-
-
+                brn_flag_exit = BRN_EXIT_SET;
             }
 
             if(nb_read == 0)// socket fermé par la borne
@@ -290,6 +274,7 @@ int main(int argc,char**argv)
                 usr_brn_sup = 0;
         }
 
+        //Gestion des afficheurs
         for(i = 0;i<nb_aff;i++)
             if(FD_ISSET(sock_aff[i].sock,&rfds))
             {
@@ -306,6 +291,7 @@ int main(int argc,char**argv)
                 }
             }
 
+        //Gestion des guichet
         for(i=0;i<nb_ght;i++)
             if(FD_ISSET(sock_ght[i].sock,&rfds))
             {
@@ -319,7 +305,7 @@ int main(int argc,char**argv)
                     if(strcmp(buf,GHT_ASKCLT)==0)//demande d'un client
                     {
                         clt = isInQueue(usr_tab,usr_brn_inf,usr_brn_sup);
-                        if(clt == GEST_NOCLT)//pas de client
+                        if(clt == GEST_NOCLT && brn_flag_exit == BRN_EXIT_NO_SET)//pas de client
                         {
                             nb_write = write(sock_ght[i].sock,GHT_NOCLT,strlen(GHT_NOCLT));
                             if(nb_write!=strlen(GHT_NOCLT))
@@ -328,7 +314,18 @@ int main(int argc,char**argv)
                                 perror("write");
                                 exit(-1);
                             }
+
+                        }else if(clt == GEST_NOCLT && brn_flag_exit == BRN_EXIT_SET){//pas de client + exit reçu de la borne
+
+                            nb_write = write(sock_ght[i].sock,GHT_EXIT,strlen(GHT_EXIT));
+                            if(nb_write!=strlen(GHT_EXIT))
+                            {
+                                printf("erreur writ\n");
+                                perror("write");
+                                exit(-1);
+                            }
                         }
+
                         else //il y a un client
                         {
                             for(i = 0;i<nb_aff;i++) // on affiche le client ainsi que son guichet attribué

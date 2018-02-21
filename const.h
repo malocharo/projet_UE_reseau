@@ -13,6 +13,7 @@
 #define GHT_ASKCLT "1"
 #define GHT_CLTCONF "2"
 #define GHT_NOCLT "3"
+#define GHT_EXIT "5"
 #define GHT_SIZE_CONST 1
 
 #define AFF_IDENTIFIER "aff"
@@ -21,6 +22,9 @@
 
 #define BRN_IDENTIFIER "brn"
 #define BRN_EXIT "exit"
+#define BRN_EXIT_NO_SET 0
+#define BRN_EXIT_SET 1
+
 
 #define MAX_AFF 10
 #define MAX_GHT 10

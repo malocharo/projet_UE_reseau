@@ -32,7 +32,6 @@ int main(int argc,char **argv)
     ssize_t id_read;
 
 
-
     struct user usr;
     if(argc<2)
     {
@@ -85,7 +84,7 @@ int main(int argc,char **argv)
         printf("Votre nom svp :\n");
         scanf("%s",usr.nom);
 
-        if(strcmp(usr.nom,BRN_EXIT) == 0){// si le nom est "exit" on quitte le borne
+        if(strcmp(usr.nom,BRN_EXIT) == 0){// si le nom est "exit" on quitte le borne et on previens la gestion de salle
 
             if((nb_write = write(sock,&usr.id,sizeof(int))) !=  sizeof(int))
             {
