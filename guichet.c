@@ -115,7 +115,7 @@ int main(int argc,char **argv) {
         }
         else if(strcmp(buf_recv,GEST_CONFCLT) == 0) // il y'a un client
         {
-            if((nb_read = read(sock,&usr.id,sizeof(usr.id)))<0)
+            if((nb_read = read(sock,&usr.id,sizeof(int)))<0)
             {
                 printf("erreur reception donne client\n");
                 perror("recp");

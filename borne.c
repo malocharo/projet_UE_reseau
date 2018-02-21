@@ -87,16 +87,16 @@ int main(int argc,char **argv)
 
         if(strcmp(usr.nom,BRN_EXIT) == 0){// si le nom est "exit" on quitte le borne
 
-            if((nb_write = write(sock,&usr.id,sizeof(int))) == -1)
+            if((nb_write = write(sock,&usr.id,sizeof(int))) !=  sizeof(int))
             {
                 printf("erreur envoie des donnees clients\n");
-                exit(1);//TODO handle & retry
+                exit(1);
             }
 
             if((nb_write = write(sock,BRN_EXIT,strlen(BRN_EXIT))) != strlen(BRN_EXIT))
             {
                 printf("erreur envoie des donnees clients\n");
-                exit(1);//TODO handle & retry
+                exit(1);
             }
 
             break;
@@ -104,16 +104,16 @@ int main(int argc,char **argv)
         usr.id = uid;
         uid++;
 
-        if((nb_write = write(sock,&usr.id,sizeof(int))) == -1)
+        if((nb_write = write(sock,&usr.id,sizeof(int))) == sizeof(int))
         {
             printf("erreur envoie des donnees clients\n");
-            exit(1);//TODO handle & retry
+            exit(1);
         }
 
         if((nb_write = write(sock,usr.nom,strlen(usr.nom))) != strlen(usr.nom))
         {
             printf("erreur envoie des donnees clients\n");
-            exit(1);//TODO handle & retry
+            exit(1);
         }
 
         printf("donnees envoyees\n");
