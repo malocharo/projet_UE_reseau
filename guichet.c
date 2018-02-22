@@ -21,7 +21,11 @@ int appel_client()
 {
     char choix;
     printf("Voulez vous appeler un client ?[O/N]\n");
+    fflush(stdin);
+    fflush(stdout);
+
     scanf(" %c",&choix);
+    printf("%c",choix);
     if(choix == 'O' || choix == 'o')
         return 1;
     return 0;
@@ -38,6 +42,7 @@ int main(int argc,char **argv) {
     char buf_recv[BUFSIZE];
     int dmd_lib = 1;
     struct user usr;
+    char c;
 
     int ind_clt;
 
@@ -88,9 +93,17 @@ int main(int argc,char **argv) {
         perror("write");
         exit(1);
     }
-
-    while(appel_client())
+    printf("identifiant envoyé %s\n",num_gui);
+    while(1)
     {
+        printf("voulez vous un client ? [o/n]\n");
+        c = (char)getchar();
+        while(c!='o')
+        {
+            printf("voulez vous un client ? [o/n]\n");
+            c = (char)getchar();
+        }
+
         nb_write = write(sock,GHT_ASKCLT,strlen(GHT_ASKCLT)); //"1" => demande de client , je suis libre
         if(nb_write != strlen(GHT_ASKCLT))
         {

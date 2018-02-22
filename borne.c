@@ -78,7 +78,7 @@ int main(int argc,char **argv)
         perror("read");
         exit(-1);
     }
-
+    printf("recu uid = %d\n",uid);
     while(boolean)
     {
         printf("Votre nom svp :\n");
@@ -103,15 +103,15 @@ int main(int argc,char **argv)
         usr.id = uid;
         uid++;
 
-        if((nb_write = write(sock,&usr.id,sizeof(int))) == sizeof(int))
+        if((nb_write = write(sock,&(usr.id),sizeof(int))) != sizeof(int))
         {
-            printf("erreur envoie des donnees clients\n");
+            printf("erreur envoie des donnees client : uid\n");
             exit(1);
         }
 
         if((nb_write = write(sock,usr.nom,strlen(usr.nom))) != strlen(usr.nom))
         {
-            printf("erreur envoie des donnees clients\n");
+            printf("erreur envoie des donnees client : nom\n");
             exit(1);
         }
 

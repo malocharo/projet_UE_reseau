@@ -62,7 +62,7 @@ int main(int argc, char**argv)
     struct sockaddr_in addr_serv;
     char buf[BUFSIZE];
     ssize_t nb_write;
-    ssize_t len_name_clt;
+    size_t len_name_clt;
 
 
     if(argc < 2)
