@@ -72,6 +72,8 @@ int main(int argc,char**argv)
     int size_addr_clt = sizeof(addr_clt);
     int uid = 0;
     int brn_flag_exit = BRN_EXIT_NO_SET;//Si la borne à exit ou non
+    int sock_opt = 1;
+    int brn_state = BRN_NOTCONN;
 
     struct addr_cmp sock_aff[MAX_AFF];
     int nb_aff = 0;
@@ -101,7 +103,12 @@ int main(int argc,char**argv)
         perror("socket");
         exit(1);
     }
-
+    if(setsockopt(sock_acceuil,SOL_SOCKET,SO_REUSEADDR,&sock_opt,sizeof(sock_opt)) != 0)
+    {
+        printf("erreur lors de la configuration de la socket d'acceuil\n");
+        perror("setsockopt");
+        exit(-1);
+    }
     port = (unsigned int)atoi(argv[1]);
 
     addr_loc.sin_family = AF_INET;
@@ -128,6 +135,7 @@ int main(int argc,char**argv)
         FD_ZERO(&rfds);
         FD_SET(STDIN_FILENO,&rfds); //clavier
         FD_SET(sock_acceuil,&rfds);
+        if(brn_state == BRN_CONN) // sinon boucle sans fin sur la socket close
         FD_SET(sock_brn.sock,&rfds); //socket de borne unique
 
         for(i=0;i<nb_aff;i++)
@@ -153,7 +161,7 @@ int main(int argc,char**argv)
         {
             buf[0] = (char)getchar();
             printf("read : %c\n",buf[0]);
-            
+
             if(buf[0] == 'i')
             {
                 printf("Types     adresse       port\n");
@@ -208,6 +216,7 @@ int main(int argc,char**argv)
 
                 sock_brn.sock = sock_service;
                 sock_brn.addr_cmp = addr_clt;
+                brn_state  = BRN_CONN;
                 printf("nouvelle borne ajouté uid = %d\n",uid);
             }
             else if(strcmp(buf,GHT_IDENTIFIER)==0)
@@ -260,6 +269,7 @@ int main(int argc,char**argv)
             }
             printf("recu : %s %d depuis la borne\n",usr_tab[usr_brn_sup].nom,usr_tab[usr_brn_sup].id);
 
+
             //Si c'est la fin de la journée (On coupe proprement)
             if(strcmp(usr_tab[usr_brn_sup].nom,BRN_EXIT) == 0){
                 brn_flag_exit = BRN_EXIT_SET;
@@ -268,14 +278,19 @@ int main(int argc,char**argv)
             if(nb_read == 0)// socket fermé par la borne
             {
                 printf("deconnexion de la borne d'acceuil\n");
-                exit(-1);
+                brn_state = BRN_NOTCONN;
+
+                //exit(-1);
                 /*Si on ferme la borne d'accueil on regarde si on a toujours de client*/
             }
-
-            usr_brn_sup++;
-            nb_usr++;
-            if(usr_brn_sup == MAX_USR-1)
-                usr_brn_sup = 0;
+            else
+            {
+                usr_brn_sup++;
+                nb_usr++;
+                uid++;
+                if (usr_brn_sup == MAX_USR - 1)
+                    usr_brn_sup = 0;
+            }
         }
 
         //Gestion des afficheurs

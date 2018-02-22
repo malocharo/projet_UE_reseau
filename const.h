@@ -25,6 +25,8 @@
 #define BRN_EXIT "exit"
 #define BRN_EXIT_NO_SET 0
 #define BRN_EXIT_SET 1
+#define BRN_CONN 1
+#define BRN_NOTCONN 0
 
 
 #define MAX_AFF 10
