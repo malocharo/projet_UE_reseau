@@ -33,6 +33,7 @@ int appel_client()
 
 int main(int argc,char **argv) {
     char num_gui[BUFSIZE_MIN];
+    size_t length_num_gui;
     int sock;
     uint16_t port;
     struct hostent *hote = NULL;
@@ -42,7 +43,7 @@ int main(int argc,char **argv) {
     char buf_recv[BUFSIZE];
     int dmd_lib = 1;
     struct user usr;
-    char c;
+    char c = '\0';
 
     int ind_clt;
 
@@ -87,6 +88,13 @@ int main(int argc,char **argv) {
     }
 
     //Envoye son numéro
+    length_num_gui = strlen(num_gui);
+    if((nb_write = write(sock,&length_num_gui,sizeof(int))) != sizeof(int))
+    {
+        printf("erreur à l'envoi de la taille de l'identifiant\n");
+        perror("write");
+        exit(1);
+    }
     if((nb_write = write(sock,num_gui,strlen(num_gui)) != strlen(num_gui)))
     {
         printf("erreur à l'envoi de l'identifiant\n");
@@ -96,13 +104,12 @@ int main(int argc,char **argv) {
     printf("identifiant envoyé %s\n",num_gui);
     while(1)
     {
-        printf("voulez vous un client ? [o/n]\n");
-        c = (char)getchar();
-        while(c!='o')
+        fflush(stdin);
+        do
         {
             printf("voulez vous un client ? [o/n]\n");
             c = (char)getchar();
-        }
+        }while(c != 'o');
 
         nb_write = write(sock,GHT_ASKCLT,strlen(GHT_ASKCLT)); //"1" => demande de client , je suis libre
         if(nb_write != strlen(GHT_ASKCLT))
@@ -158,11 +165,11 @@ int main(int argc,char **argv) {
 
             printf("client : %s %d\n",usr.nom,usr.id);
             printf("Ecrire 'ok' pour valider la présence du client\n");
-            scanf("%s",&buf_recv);
+            scanf("%s",buf_recv);
             while(strcmp(buf_recv,"ok") != 0)
             {
                 printf("Ecrire 'ok' pour valider la présence du client\n");
-                scanf("%s",&buf_recv);
+                scanf("%s",buf_recv);
             }
 
             nb_write = write(sock,GHT_CLTCONF,strlen(GHT_CLTCONF)); //"2" => client recu, pas libre,afficher sur afficheur

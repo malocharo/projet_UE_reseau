@@ -32,7 +32,7 @@ int display()
     system("clear");
     for(i = 0;i<size_tab_aff;i++)
     {
-        printf("%s%d guichet=> N°%s\n",tab_aff[i].usr.nom,tab_aff[i].usr.id,tab_aff[i].nb_guichet);
+        printf("%s%d guichet=> N° %s\n",tab_aff[i].usr.nom,tab_aff[i].usr.id,tab_aff[i].nb_guichet);
     }
 }
 
@@ -104,35 +104,36 @@ int main(int argc, char**argv)
         exit(1);
     }
     while(1)
-    {
-        if ((nb_read = read(sock, buf, GHT_SIZE_CONST)) < 0) {
-            printf("erreur lors de la reception du msg");
+    {   bzero(buf,BUFSIZE);
+        if ((nb_read = read(sock, buf, GHT_SIZE_CONST)) != GHT_SIZE_CONST) {
+            printf("erreur lors de la reception du msg\n");
             perror("read");
             exit(1);
         }
+        printf("receive by afficheur : %s\n",buf);
         if (strcmp(buf,AFF_ASKADD) == 0)//envoi d'une demande d'affichage
         {
             //reception de l id
             if ((nb_read = read(sock, &tab_aff[size_tab_aff].usr.id, sizeof(int))) != sizeof(int)) {
-                printf("erreur lors de la reception du struct client");
+                printf("erreur lors de la reception de l id %d\n",tab_aff[size_tab_aff].usr.id);
                 perror("read");
                 exit(1);
             }
             //reception taille du nom
             if ((nb_read = read(sock,&len_name_clt, sizeof(int))) != sizeof(int)) {
-                printf("erreur lors de la reception du struct client");
+                printf("erreur lors de la reception de la longueur du nom\n");
                 perror("read");
                 exit(1);
             }
             //reception du nom du client
             if ((nb_read = read(sock,&tab_aff[size_tab_aff].usr.nom,len_name_clt)) != len_name_clt) {
-                printf("erreur lors de la reception du struct client");
+                printf("erreur lors de la reception du nom client recv %ld %s oct au lieu %ld\n",nb_read,tab_aff[size_tab_aff].usr.nom,len_name_clt);
                 perror("read");
                 exit(1);
             }
             //reception du numero de guichet
             if ((nb_read = read(sock, &tab_aff[size_tab_aff].nb_guichet, BUFSIZE)) < 0) {
-                printf("erreur lors de la reception du struct client");
+                printf("erreur lors de la reception du numero guichet\n");
                 perror("read");
                 exit(1);
             }
