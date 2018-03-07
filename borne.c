@@ -33,7 +33,7 @@ int main(int argc,char **argv)
 
 
     struct user usr;
-    if(argc<2)
+    if(argc<3)
     {
         printf("usage %s port ip\n",argv[0]);
         exit(0);

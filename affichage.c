@@ -30,9 +30,10 @@ int display()
 {
     int i;
     system("clear");
+    printf("User        Guichet N°\n");
     for(i = 0;i<size_tab_aff;i++)
     {
-        printf("%s%d guichet=> N° %s\n",tab_aff[i].usr.nom,tab_aff[i].usr.id,tab_aff[i].nb_guichet);
+        printf("%s%d      %s\n",tab_aff[i].usr.nom,tab_aff[i].usr.id,tab_aff[i].nb_guichet);
     }
 }
 
@@ -65,7 +66,7 @@ int main(int argc, char**argv)
     size_t len_name_clt;
 
 
-    if(argc < 2)
+    if(argc < 3)
     {
         printf("usage : %s port ip\n",argv[0]);
         exit(-1);

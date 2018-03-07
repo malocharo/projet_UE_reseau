@@ -52,6 +52,8 @@ int isInQueue(struct user *usr,int brn_inf,int brn_sup)
 
 void remove_socket(int index,struct addr_cmp *addr,int* len_struct)
 {
+    if(*len_struct<=0)
+        return;
     addr[index].sock = -1;
     addr[index] = addr[*len_struct-1];
     *len_struct = *len_struct - 1;

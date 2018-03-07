@@ -14,22 +14,9 @@
 
 #include "user.h"
 #include "const.h"
-#define DEBUG 08
 
 
-int appel_client()
-{
-    char choix;
-    printf("Voulez vous appeler un client ?[O/N]\n");
-    fflush(stdin);
-    fflush(stdout);
 
-    scanf(" %c",&choix);
-    printf("%c",choix);
-    if(choix == 'O' || choix == 'o')
-        return 1;
-    return 0;
-}
 
 int main(int argc,char **argv) {
     char num_gui[BUFSIZE_MIN];
@@ -47,7 +34,7 @@ int main(int argc,char **argv) {
 
     int ind_clt;
 
-    if(argc < 2)
+    if(argc < 3)
     {
         printf("usage : %s port ip\n",argv[0]);
         exit(-1);
@@ -105,12 +92,11 @@ int main(int argc,char **argv) {
     while(1)
     {
         fflush(stdin);
-        c = 'a';
         do
         {
-            printf("voulez vous un client ? [o/n]\n");
-            c = (char)getchar();
-        }while(c != 'o');
+            printf("voulez vous un client ? [oui/non]\n");
+            scanf("%s",buf_recv);
+        }while(strcmp(buf_recv,"oui") != 0);
 
         nb_write = write(sock,GHT_ASKCLT,strlen(GHT_ASKCLT)); //"1" => demande de client , je suis libre
         if(nb_write != strlen(GHT_ASKCLT))
