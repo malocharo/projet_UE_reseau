@@ -105,6 +105,7 @@ int main(int argc,char **argv) {
     while(1)
     {
         fflush(stdin);
+        c = 'a';
         do
         {
             printf("voulez vous un client ? [o/n]\n");
@@ -121,8 +122,9 @@ int main(int argc,char **argv) {
             }
             exit(1); //TODO handle & retry
         }
-
+        bzero(buf_recv,BUFSIZE);
         nb_read = read(sock,buf_recv,GHT_SIZE_CONST); // égal a 1 sinon pas de limite de message toussa
+        printf("recv %s after asking for client\n",buf_recv);
         if(nb_read<0)
         {
             printf("erreur lors de la reception\n");
@@ -144,6 +146,7 @@ int main(int argc,char **argv) {
 
         else if(strcmp(buf_recv,GEST_CONFCLT) == 0) // il y'a un client
         {
+            printf("il y'a un client reception des infos\n");
             if((nb_read = read(sock,&usr.id,sizeof(int)))<0)
             {
                 printf("erreur reception donne client\n");

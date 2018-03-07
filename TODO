@@ -2,10 +2,12 @@
 
 - Affichage du guichet et du client sur l'affichage quand le client soit ce rendre au guichet[FAIT]
 
-- Gérer les deconnections dans gestion_salle.
+- Gérer les deconnections dans gestion_salle [FAIT]
 
 - Factoriser le code dans gestion_salle
 
-- tester les codes.
+- tester les codes.[FAIT 60%]
+
+- Rendre l'affichage des differents messages console propre /!\ important pour la presentation
 
 - Faire de vrais commentaires

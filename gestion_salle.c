@@ -33,17 +33,17 @@ int isInQueue(struct user *usr,int brn_inf,int brn_sup)
     if(brn_inf>brn_sup)
     {
         for(i = brn_inf;i<MAX_USR;i++)
-            if(strlen(usr[i].nom) != 0)
+            if(strlen(usr[i].nom) != 0 && usr[i].state == CONF)
                 return i;
         for(i=0;i<brn_sup;i++)
-            if(strlen(usr[i].nom) != 0)
+            if(strlen(usr[i].nom) != 0 && usr[i].state == CONF)
                 return i;
         return -1;
     }
     else
     {
         for(i=brn_inf;i<brn_sup;i++)
-            if(strlen(usr[i].nom)!=0)
+            if(strlen(usr[i].nom)!=0 && usr[i].state == CONF)
                 return i;
         return -1;
     }
@@ -54,7 +54,7 @@ void remove_socket(int index,struct addr_cmp *addr,int* len_struct)
 {
     addr[index].sock = -1;
     addr[index] = addr[*len_struct-1];
-    *len_struct--;
+    *len_struct = *len_struct - 1;
 }
 
 int main(int argc,char**argv)
@@ -85,8 +85,10 @@ int main(int argc,char**argv)
     int nb_ght = 0;
 
     struct user usr_tab[MAX_USR];
-    for(i = 0;i<MAX_USR;i++)
-        bzero(usr_tab[i].nom,BUFSIZE);
+    for(i = 0;i<MAX_USR;i++) {
+        bzero(usr_tab[i].nom, BUFSIZE);
+        usr_tab[i].state = CONF;
+    }
 
     int nb_usr = 0;
     int usr_brn_inf = 0;
@@ -98,7 +100,7 @@ int main(int argc,char**argv)
 
     if(argc != 2)
     {
-        printf("usage : %s port\n",argv[0]);
+        printf("0 : usage : %s port\n",argv[0]);
         exit(1);
     }
     if((sock_acceuil = socket(AF_INET,SOCK_STREAM,0))==-1)
@@ -108,7 +110,7 @@ int main(int argc,char**argv)
     }
     if(setsockopt(sock_acceuil,SOL_SOCKET,SO_REUSEADDR,&sock_opt,sizeof(sock_opt)) != 0)
     {
-        printf("erreur lors de la configuration de la socket d'acceuil\n");
+        printf("1 : erreur lors de la configuration de la socket d'acceuil\n");
         perror("setsockopt");
         exit(-1);
     }
@@ -120,14 +122,14 @@ int main(int argc,char**argv)
 
     if((bind(sock_acceuil,(struct sockaddr*)&addr_loc,sizeof(addr_loc))) == -1)
     {
-        printf("erreur lors de l'attachement de la socket decoute\n");
+        printf("2 : erreur lors de l'attachement de la socket decoute\n");
         perror("bind");
         exit(1);
     }
 
     if(listen(sock_acceuil,NB_MAX_PENDINGQUEUE)==-1)
     {
-        printf("erreur lors de la mise en place du listen\n");
+        printf("3 : erreur lors de la mise en place du listen\n");
         perror("listen");
         exit(-1);
     }
@@ -135,6 +137,8 @@ int main(int argc,char**argv)
 
     while(1)
     {
+        fflush(stdin);
+        fflush(stdout);
         FD_ZERO(&rfds);
         FD_SET(STDIN_FILENO,&rfds); //clavier
         FD_SET(sock_acceuil,&rfds);
@@ -145,14 +149,14 @@ int main(int argc,char**argv)
             FD_SET(sock_aff[i].sock,&rfds); //socket des afficheurs
         for(i=0;i<nb_ght;i++)
             FD_SET(sock_ght[i].sock,&rfds); //socket des guichets
-        printf("select en place\n");
+        printf("4.1 : select en place\n");
 
         retval = select(FD_SETSIZE,&rfds,NULL,NULL,NULL);
 
         //erreur de select
         if(retval<0)
         {
-            printf("erreur lors de l'utilisation du select\n");
+            printf("5 : erreur lors de l'utilisation du select\n");
             perror("select");
             exit(-1);
         }
@@ -163,15 +167,15 @@ int main(int argc,char**argv)
         if(FD_ISSET(STDIN_FILENO,&rfds))
         {   bzero(buf,BUFSIZE);
             buf[0] = (char)getchar();
-            printf("read : %c\n",buf[0]);
+            printf("6 : read : %c\n",buf[0]);
 
             if(buf[0] == 'i')
             {
-                printf("Types     adresse       port    opt\n");
+                printf("7 : Types     adresse       port    opt\n");
                 for(i = 0;i<nb_aff;i++)
-                    printf("afficheur  %s   %d\n",inet_ntoa(sock_aff[i].addr_cmp.sin_addr),sock_aff[i].addr_cmp.sin_port);
+                    printf("8 : afficheur  %s   %d\n",inet_ntoa(sock_aff[i].addr_cmp.sin_addr),sock_aff[i].addr_cmp.sin_port);
                 for(i = 0;i<nb_ght;i++)
-                    printf("guichet    %s   %d    %s\n",inet_ntoa(sock_ght[i].addr_cmp.sin_addr),sock_ght[i].addr_cmp.sin_port,sock_ght[i].num);
+                    printf("9 : guichet    %s   %d    %s\n",inet_ntoa(sock_ght[i].addr_cmp.sin_addr),sock_ght[i].addr_cmp.sin_port,sock_ght[i].num);
             }
             else if(buf[0] == 'q')
             {
@@ -179,11 +183,11 @@ int main(int argc,char**argv)
             }
             else if(buf[0] == 'l')
             {
-                printf("Il y'a %d personnes en attente\n",nb_usr);
+                printf("10 : Il y'a %d personnes en attente\n",nb_usr);
                 for(i = 0;i<NB_MAX_PENDINGQUEUE;i++)
                 {
                     if(strlen(usr_tab[i].nom) != 0)
-                        printf("%s%d\n",usr_tab[i].nom,usr_tab[i].id);
+                        printf("11 : %s%d\n",usr_tab[i].nom,usr_tab[i].id);
                 }
             }
             continue;
@@ -192,27 +196,27 @@ int main(int argc,char**argv)
         if(FD_ISSET(sock_acceuil,&rfds))// nouvelle connexion gestion d erreur type envoie conf ?
         {
             sock_service = accept(sock_acceuil,(struct sockaddr*)&addr_clt,(socklen_t *)&size_addr_clt);
-            printf("nouvelle connexion\n");
+            printf("12 : nouvelle connexion\n");
             if(sock_service == -1)
             {
-                printf("erreur lors de l'accept\n");
+                printf("13 : erreur lors de l'accept\n");
                 perror("accept");
                 exit(-1);
             }
 
             if((nb_read = read(sock_service,buf,GHT_SIZE_IDENTIFIER))<0)
             {
-                printf("erreur lors du read\n");
+                printf("14 : erreur lors du read\n");
                 perror("read");
                 exit(-1);
             }
-            printf("receive %s\n",buf);
+            printf("15 : receive %s\n",buf);
 
             if(strcmp(buf,BRN_IDENTIFIER)==0)
             {
                 if((nb_write = write(sock_service,&uid, sizeof(int)) != sizeof(int)))
                 {
-                    printf("erreur à l'envoi de l'identifiant\n");
+                    printf("16 ; erreur à l'envoi de l'identifiant\n");
                     perror("write");
                     exit(1);
                 }
@@ -220,20 +224,20 @@ int main(int argc,char**argv)
                 sock_brn.sock = sock_service;
                 sock_brn.addr_cmp = addr_clt;
                 brn_state  = BRN_CONN;
-                printf("nouvelle borne ajouté uid = %d\n",uid);
+                printf("17 : nouvelle borne ajouté uid = %d\n",uid);
             }
             else if(strcmp(buf,GHT_IDENTIFIER)==0)
             {
                 if((nb_read = read(sock_service,&length_num_gui,sizeof(int))) != sizeof(int))
                 {
-                    printf("erreur lors de la reception de la taille du guichet\n");
+                    printf("18 : erreur lors de la reception de la taille du guichet\n");
                     perror("read");
                     exit(-1);
                 }
                 bzero(buf,BUFSIZE);
                 if((nb_read = read(sock_service,buf,length_num_gui)) != length_num_gui)
                 {
-                    printf("erreur lors de la reception du numero de guichet\n");
+                    printf("19 : erreur lors de la reception du numero de guichet\n");
                     perror("read");
                     exit(-1);
                 }
@@ -244,7 +248,7 @@ int main(int argc,char**argv)
                     sock_ght[nb_ght].addr_cmp = addr_clt;
                     strcpy(sock_ght[i].num,buf); //numero du guichet
                     nb_ght++;
-                    printf("nouveau guichet ajouté\n");
+                    printf("20 : nouveau guichet ajouté\n");
                 }
             }
             else if(strcmp(buf,AFF_IDENTIFIER)==0)
@@ -254,7 +258,7 @@ int main(int argc,char**argv)
                     sock_aff[nb_aff].sock = sock_service;
                     sock_aff[nb_aff].addr_cmp = addr_clt;
                     nb_aff++;
-                    printf("nouvelle afficheur ajouté\n");
+                    printf("21 : nouvelle afficheur ajouté\n");
                 }
             }
         }
@@ -266,18 +270,18 @@ int main(int argc,char**argv)
             //receive id,name
             if((nb_read = read(sock_brn.sock,&usr_tab[usr_brn_sup].id,sizeof(int)))<0)
             {
-                printf("error reception message\n");
+                printf("22 : error reception message\n");
                 perror("read");
                 exit(-1);
             }
 
             if((nb_read = read(sock_brn.sock,&usr_tab[usr_brn_sup].nom,BUFSIZE))<0)
             {
-                printf("error reception message\n");
+                printf("23 : error reception message\n");
                 perror("read");
                 exit(-1);
             }
-            printf("recu : %s %d depuis la borne\n",usr_tab[usr_brn_sup].nom,usr_tab[usr_brn_sup].id);
+            printf("24 : recu : %s %d depuis la borne\n",usr_tab[usr_brn_sup].nom,usr_tab[usr_brn_sup].id);
 
 
             //Si c'est la fin de la journée (On coupe proprement)
@@ -287,7 +291,7 @@ int main(int argc,char**argv)
 
             if(nb_read == 0)// socket fermé par la borne
             {
-                printf("deconnexion de la borne d'acceuil\n");
+                printf("25 : deconnexion de la borne d'acceuil\n");
                 brn_state = BRN_NOTCONN;
 
                 //exit(-1);
@@ -309,13 +313,13 @@ int main(int argc,char**argv)
             {
                 if((nb_read = read(sock_aff[i].sock,buf,BUFSIZE))<0)
                 {
-                    printf("erreur lors de la reception d'un message de l'afficheur\n");
+                    printf("26 : erreur lors de la reception d'un message de l'afficheur\n");
                     perror("read");
                     exit(-1);
                 }
                 if(nb_read == 0) //deconexion de l'afficheur
                 {
-                    printf("deconnexion de l'afficheur %s\n",inet_ntoa(sock_aff[i].addr_cmp.sin_addr));
+                    printf("27 : deconnexion de l'afficheur %s\n",inet_ntoa(sock_aff[i].addr_cmp.sin_addr));
                     remove_socket(i,sock_aff,&nb_aff);
                 }
             }
@@ -326,10 +330,10 @@ int main(int argc,char**argv)
             {   bzero(buf,BUFSIZE);
                 if((nb_read = read(sock_ght[i].sock,buf,GHT_SIZE_CONST)) >= 0)// erreur
                 {
-                    printf("recu : %s par guichet %d\n",buf,i);
+                    printf("28 : recu : %s par guichet %d\n",buf,i);
                     if(nb_read == 0)// connexion fermée par le guichet
                     {
-                        printf("deconnection du guichet %s\n",inet_ntoa(sock_ght[i].addr_cmp.sin_addr));
+                        printf("29 : deconnection du guichet %s\n",inet_ntoa(sock_ght[i].addr_cmp.sin_addr));
                         remove_socket(i,sock_ght,&nb_ght);
                     }
                     if(strcmp(buf,GHT_ASKCLT)==0)//demande d'un client
@@ -340,7 +344,7 @@ int main(int argc,char**argv)
                             nb_write = write(sock_ght[i].sock,GHT_NOCLT,strlen(GHT_NOCLT));
                             if(nb_write!=strlen(GHT_NOCLT))
                             {
-                                printf("erreur writ\n");
+                                printf("30 : erreur write\n");
                                 perror("write");
                                 exit(-1);
                             }
@@ -350,7 +354,7 @@ int main(int argc,char**argv)
                             nb_write = write(sock_ght[i].sock,GHT_EXIT,strlen(GHT_EXIT));
                             if(nb_write!=strlen(GHT_EXIT))
                             {
-                                printf("erreur writ\n");
+                                printf("31 : erreur writ\n");
                                 perror("write");
                                 exit(-1);
                             }
@@ -358,45 +362,46 @@ int main(int argc,char**argv)
 
                         else //il y a un client
                         {
-                            for(i = 0;i<nb_aff;i++) // on affiche le client ainsi que son guichet attribué
+                            for(j = 0;j<nb_aff;j++) // on affiche le client ainsi que son guichet attribué
                             {
-                                if((nb_write = write(sock_aff[i].sock,AFF_ASKADD,strlen(AFF_ASKADD))) != strlen(AFF_ASKADD))
+                                if((nb_write = write(sock_aff[j].sock,AFF_ASKADD,strlen(AFF_ASKADD))) != strlen(AFF_ASKADD))
                                 {
-                                    printf("erreur lors de l'envoie du code de demande d'affichage a l'afficheur %d\n",i);
+                                    printf("32 : erreur lors de l'envoie du code de demande d'affichage a l'afficheur %d\n",i);
                                     perror("write");
                                     exit(-1);
                                 }
-                                if((nb_write = write(sock_aff[i].sock,&usr_tab[clt].id,sizeof(int))) !=  sizeof(int))
+                                if((nb_write = write(sock_aff[j].sock,&usr_tab[clt].id,sizeof(int))) !=  sizeof(int))
                                 {
-                                    printf("erreur lors de l'envoie de l'id du client %d a l'afficheur %d\n",clt,i);
+                                    printf("33 : erreur lors de l'envoie de l'id du client %d a l'afficheur %d\n",clt,i);
                                     perror("write");
                                     exit(-1);
                                 }
-                                length_name_clt = (strlen(usr_tab[clt].nom) +1);
-                                if((nb_write = write(sock_aff[i].sock,&length_name_clt,sizeof(int))) !=  sizeof(int))
+                                length_name_clt = (strlen(usr_tab[clt].nom) );
+                                if((nb_write = write(sock_aff[j].sock,&length_name_clt,sizeof(int))) !=  sizeof(int))
                                 {
-                                    printf("erreur lors de l'envoie de la taille du nom du client %d a l'afficheur %d\n",clt,i);
+                                    printf("34 : erreur lors de l'envoie de la taille du nom du client %d a l'afficheur %d\n",clt,i);
                                     perror("write");
                                     exit(-1);
                                 }
-                                if((nb_write = write(sock_aff[i].sock,usr_tab[clt].nom,length_name_clt)) != length_name_clt)
+                                if((nb_write = write(sock_aff[j].sock,usr_tab[clt].nom,length_name_clt)) != length_name_clt)
                                 {
-                                    printf("erreur lors de l'envoie de la taille du nom du client %d a l'afficheur %d\n",clt,i);
+                                    printf("35 : erreur lors de l'envoie de la taille du nom du client %d a l'afficheur %d\n",clt,i);
                                     perror("write");
                                     exit(-1);
                                 }
-                                if((nb_write = write(sock_aff[i].sock,sock_ght[i].num,strlen(sock_ght[i].num))) !=  strlen(sock_ght[i].num))
+                                if((nb_write = write(sock_aff[j].sock,sock_ght[i].num,strlen(sock_ght[i].num))) !=  strlen(sock_ght[i].num))
                                 {
-                                    printf("erreur lors de l'envoie de la taille du nom du client %d a l'afficheur %d\n",clt,i);
+                                    printf("36 : erreur lors de l'envoie de la taille du nom du client %d a l'afficheur %d\n",clt,i);
                                     perror("write");
                                     exit(-1);
                                 }
                             }
 
                             nb_write = write(sock_ght[i].sock,GEST_CONFCLT,strlen(GEST_CONFCLT)); //conf on envoie client
+                            usr_tab[clt].state = WTCONF;
                             if(nb_write!=strlen(GEST_CONFCLT))
                             {
-                                printf("erreur write\n");
+                                printf("37 : erreur write\n");
                                 perror("write");
                                 exit(-1);
                             }
@@ -404,21 +409,21 @@ int main(int argc,char**argv)
                             nb_write = write(sock_ght[i].sock,&usr_tab[clt].id,sizeof(int));
                             if(nb_write != sizeof(int))
                             {
-                                printf("erreur lors de l'envoi des donnes clients\n");
+                                printf("38 : erreur lors de l'envoi des donnes clients\n");
                                 perror("write");
                                 exit(-1);
                             }
                             nb_write = write(sock_ght[i].sock,&clt,sizeof(int));
                             if(nb_write != sizeof(int))
                             {
-                                printf("erreur lors de l'envoi de l'indice du client\n");
+                                printf("39 : erreur lors de l'envoi de l'indice du client\n");
                                 perror("write");
                                 exit(-1);
                             }
                             nb_write = write(sock_ght[i].sock,&usr_tab[clt].nom,strlen(usr_tab[clt].nom));
                             if(nb_write != strlen(usr_tab[clt].nom))
                             {
-                                printf("erreur lors de l'envoi de l'indice du client\n");
+                                printf("40 : erreur lors de l'envoi de l'indice du client\n");
                                 perror("write");
                                 exit(-1);
                             }
@@ -429,10 +434,11 @@ int main(int argc,char**argv)
                         nb_read = read(sock_ght[i].sock,&clt,sizeof(int));
                         if(nb_read != sizeof(int))
                         {
-                            printf("erreur lors de la reception de l'indice client\n");
+                            printf("41 : erreur lors de la reception de l'indice client\n");
                             perror("read");
                             exit(-1);
                         }
+                        usr_tab[clt].state = CONF;
                         bzero(usr_tab[clt].nom,BUFSIZE);
                         nb_usr--;
                         usr_brn_inf++;
@@ -444,7 +450,7 @@ int main(int argc,char**argv)
                         {
                             if((nb_write = write(sock_aff[j].sock,AFF_ASKRET,strlen(AFF_ASKRET))) != strlen(AFF_ASKRET))
                             {
-                                printf("erreur lors de l envoie de la demande de suppression\n");
+                                printf("42 : erreur lors de l envoie de la demande de suppression\n");
                                 perror("write");
                                 exit(-1);
                             }
@@ -452,7 +458,7 @@ int main(int argc,char**argv)
                             nb_write = write(sock_aff[j].sock,sock_ght[i].num,strlen(sock_ght[i].num)); // on envoie le num
                             if(nb_write != strlen(sock_ght[i].num))
                             {
-                                perror("erreur lors de l'envoi de l'indice guichet");
+                                perror("43 : erreur lors de l'envoi de l'indice guichet\n");
                                 exit(-1);
                             }
                         }
@@ -460,7 +466,7 @@ int main(int argc,char**argv)
                 }
                 else
                 {
-                    printf("erreur lors de la reception d'un message venant du guicher %d\n",i);
+                    printf("44 : erreur lors de la reception d'un message venant du guicher %d\n",i);
                     perror("read");
                     exit(-1);
                 }
