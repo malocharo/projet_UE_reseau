@@ -15,6 +15,7 @@
 #include <strings.h>
 #include <memory.h>
 #include <sys/select.h>
+#include <wait.h>
 
 #include "user.h"
 #include "const.h"
@@ -23,8 +24,10 @@
 
 struct addr_cmp{
     struct sockaddr_in addr_cmp;
+    struct sockaddr_in addr_cmp_udp;
     int sock;
     char num[BUFSIZE];// utilise par les guichets pour transmettre leurs numéros jusqu'a l'affichage
+
 };
 
 int isInQueue(struct user *usr,int brn_inf,int brn_sup)
@@ -61,8 +64,10 @@ void remove_socket(int index,struct addr_cmp *addr,int* len_struct)
 
 int main(int argc,char**argv)
 {
-    int sock_acceuil,sock_service;
+    int sock_acceuil,sock_service,sock_udp;
     struct sockaddr_in addr_loc;
+    struct sockaddr_in addr_loc_udp;
+    int sockaddr_in_size = sizeof(struct sockaddr_in);
     struct sockaddr_in addr_clt;
     struct hostent* hote;
     int port;
@@ -79,6 +84,7 @@ int main(int argc,char**argv)
     int brn_flag_exit = BRN_EXIT_NO_SET;//Si la borne à exit ou non
     int sock_opt = 1;
     int brn_state = BRN_NOTCONN;
+    pid_t pid;
 
     struct addr_cmp sock_aff[MAX_AFF];
     int nb_aff = 0;
@@ -91,18 +97,20 @@ int main(int argc,char**argv)
         bzero(usr_tab[i].nom, BUFSIZE);
         usr_tab[i].state = CONF;
     }
-
     int nb_usr = 0;
     int usr_brn_inf = 0;
     int usr_brn_sup = 0;
 
     struct addr_cmp sock_brn;
     sock_brn.sock = 0;
+
+    struct addr_cmp sock_sup;
+
     fd_set rfds;
 
-    if(argc != 2)
+    if(argc != 3)
     {
-        printf("0 : usage : %s port\n",argv[0]);
+        printf("0 : usage : %s port TCP port UPD\n",argv[0]);
         exit(1);
     }
     if((sock_acceuil = socket(AF_INET,SOCK_STREAM,0))==-1)
@@ -116,6 +124,7 @@ int main(int argc,char**argv)
         perror("setsockopt");
         exit(-1);
     }
+
     port = (unsigned int)atoi(argv[1]);
 
     addr_loc.sin_family = AF_INET;
@@ -136,6 +145,23 @@ int main(int argc,char**argv)
         exit(-1);
     }
 
+    if((sock_udp = socket(AF_INET,SOCK_DGRAM,0)) == -1)
+    {
+        printf("erreur lors de la creation de la socket UDP\n");
+        perror("socket");
+        exit(-1);
+    }
+    addr_loc_udp.sin_family = AF_INET;
+    addr_loc_udp.sin_port = htons((uint16_t)atoi(argv[2]));
+    addr_loc_udp.sin_addr.s_addr = htonl(INADDR_ANY);
+
+    if(bind(sock_udp,(struct sockaddr*)&addr_loc_udp,sizeof(addr_loc_udp)) == -1)
+    {
+        printf("erreur lors du bind de la socket udp\n");
+        perror("bind");
+        exit(-1);
+    }
+
 
     while(1)
     {
@@ -151,6 +177,7 @@ int main(int argc,char**argv)
             FD_SET(sock_aff[i].sock,&rfds); //socket des afficheurs
         for(i=0;i<nb_ght;i++)
             FD_SET(sock_ght[i].sock,&rfds); //socket des guichets
+        FD_SET(sock_udp,&rfds);
         printf("4.1 : select en place\n");
 
         retval = select(FD_SETSIZE,&rfds,NULL,NULL,NULL);
@@ -166,6 +193,41 @@ int main(int argc,char**argv)
         // touche clavier "i", on affiche les afficheurs et les guichets ainsi que leurs adresses
         // touche clavier "l", on afficher des infos sur la liste d'attente
         // touche clavier "q", on quitte l'application
+
+        if(FD_ISSET(sock_udp,&rfds)) //connexion udp
+        {
+            pid = fork();
+            if(pid == -1)
+            {
+                printf("erreur lors du fork\n");
+                perror("fork");
+                exit(-1);
+            }
+            else if(!pid)
+            {
+                if((nb_read = recvfrom(sock_udp,buf,BUFSIZE,0,(struct sockaddr*)&sock_sup.addr_cmp,&sockaddr_in_size))<0)
+                {
+                    perror("recvfrom");
+                    exit(errno);
+                }
+                for(i = 0;i<nb_ght;i++)
+                {
+                    if((nb_write = sendto(sock_udp,buf,strlen(buf),0,(const struct sockaddr*)&sock_ght[i].addr_cmp_udp,sockaddr_in_size)) != strlen(buf))
+                    {
+
+
+                        printf("erreur lors de l'envoie du message %s au guichet %d\n",buf,i);
+                        perror("sendto");
+                        exit(-1);
+                    }
+                }
+
+            }
+            else
+            {
+               waitpid(pid,NULL,WNOHANG); //TODO gere le statut de retour
+            }
+        }
         if(FD_ISSET(STDIN_FILENO,&rfds))
         {   bzero(buf,BUFSIZE);
             buf[0] = (char)getchar();
@@ -248,6 +310,8 @@ int main(int argc,char**argv)
                 {
                     sock_ght[nb_ght].sock = sock_service;
                     sock_ght[nb_ght].addr_cmp = addr_clt;
+                    sock_ght[nb_ght].addr_cmp_udp = addr_clt;
+                    sock_ght[nb_ght].addr_cmp_udp.sin_port = htons((uint16_t)atoi(argv[2])); //c pas bo
                     strcpy(sock_ght[i].num,buf); //numero du guichet
                     nb_ght++;
                     printf("20 : nouveau guichet ajouté\n");
@@ -263,6 +327,7 @@ int main(int argc,char**argv)
                     printf("21 : nouvelle afficheur ajouté\n");
                 }
             }
+
         }
 
         //Gestion de la borne

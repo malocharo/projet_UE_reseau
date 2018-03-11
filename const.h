@@ -28,6 +28,7 @@
 #define BRN_CONN 1
 #define BRN_NOTCONN 0
 
+#define SUP_IDENTIFIER "sup"
 
 #define MAX_AFF 10
 #define MAX_GHT 10

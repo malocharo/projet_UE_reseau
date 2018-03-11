@@ -20,23 +20,27 @@
 
 int main(int argc,char **argv) {
     char num_gui[BUFSIZE_MIN];
+    char msg_sup[BUFSIZE];
     size_t length_num_gui;
-    int sock;
+    int sock,sock_udp;
     uint16_t port;
     struct hostent *hote = NULL;
     struct sockaddr_in addr_serv;
+    uint16_t port_udp;
+    struct hostent *hote_udp = NULL;
+    struct sockaddr_in addr_serv_udp;
+    int sockaddr_size = sizeof(struct sockaddr_in);
     ssize_t nb_write;
     ssize_t nb_read;
     char buf_recv[BUFSIZE];
     int dmd_lib = 1;
     struct user usr;
-    char c = '\0';
 
     int ind_clt;
 
-    if(argc < 3)
+    if(argc < 4)
     {
-        printf("usage : %s port ip\n",argv[0]);
+        printf("usage : %s port TCP ip Port UDP\n",argv[0]);
         exit(-1);
     }
     printf("Bonjour, votre numero :\n");
@@ -66,6 +70,18 @@ int main(int argc,char **argv) {
         perror("connect");
         exit(-1);
     }
+    sock_udp = socket(AF_INET,SOCK_DGRAM,0);
+    if(sock_udp == -1)
+    {
+        perror("socket");
+        exit(errno);
+    }
+    hote_udp = gethostbyname(argv[2]);
+
+    addr_serv_udp.sin_addr = *(struct in_addr*)hote_udp->h_addr;
+    addr_serv_udp.sin_port = htons((uint16_t)atoi(argv[3]));
+    addr_serv_udp.sin_family = AF_INET;
+
     // envoie de l identifiant "ght" pour identification aupres du serv gestion
     if((nb_write = write(sock,GHT_IDENTIFIER,strlen(GHT_IDENTIFIER)) != strlen(GHT_IDENTIFIER)))
     {
@@ -92,10 +108,19 @@ int main(int argc,char **argv) {
     while(1)
     {
         fflush(stdin);
+        nb_read = recvfrom(sock_udp,msg_sup,BUFSIZE,MSG_DONTWAIT,(struct sockaddr*)&addr_serv_udp,&sockaddr_size);
+        if(nb_read == EAGAIN || nb_read == EWOULDBLOCK)
+        {}
+        else
+        {
+            printf("message du superviseur : %s\n",msg_sup);
+        }
+
         do
         {
             printf("voulez vous un client ? [oui/non]\n");
             scanf("%s",buf_recv);
+
         }while(strcmp(buf_recv,"oui") != 0);
 
         nb_write = write(sock,GHT_ASKCLT,strlen(GHT_ASKCLT)); //"1" => demande de client , je suis libre
