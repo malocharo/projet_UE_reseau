@@ -48,8 +48,8 @@ int main(int argc, char **argv)
     }
 
     gest_addr.sin_family = AF_INET;
-    gest_addr.sin_addr = *(struct in_addr*)host->h_addr;
     gest_addr.sin_port = htons((uint16_t)atoi(argv[1]));
+    bcopy(host->h_addr,&gest_addr.sin_addr,(unsigned int)host->h_length);
     while(1)
     {
         do
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
             scanf("%s", buf);
         } while (strlen(buf) == 0);
 
-        if(sendto(sock,buf,strlen(buf),0,(struct sockaddr*)&gest_addr,&gest_addr_size))
+        if(sendto(sock,buf,strlen(buf),0,(struct sockaddr*)&gest_addr,gest_addr_size) != strlen(buf))
         {
             printf("erreur lors de l'envoi du message %s\n",buf);
             perror("sendto");

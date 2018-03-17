@@ -225,7 +225,7 @@ int main(int argc,char**argv)
             }
             else
             {
-               waitpid(-1,NULL,NULL); //TODO gere le statut de retour
+               waitpid(-1,NULL,0); //TODO gere le statut de retour
             }
         }
         if(FD_ISSET(STDIN_FILENO,&rfds))

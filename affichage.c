@@ -104,6 +104,7 @@ int main(int argc, char**argv)
         perror("write");
         exit(1);
     }
+    display();
     while(1)
     {   bzero(buf,BUFSIZE);
         if ((nb_read = read(sock, buf, GHT_SIZE_CONST)) != GHT_SIZE_CONST) {
