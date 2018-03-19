@@ -64,7 +64,7 @@ void remove_socket(int index,struct addr_cmp *addr,int* len_struct)
 
 int main(int argc,char**argv)
 {
-    int sock_acceuil,sock_service,sock_udp;
+    int sock_acceuil,sock_service,sock_udp,sock_udp_send;
     struct sockaddr_in addr_loc;
     struct sockaddr_in addr_loc_udp;
     int sockaddr_in_size = sizeof(struct sockaddr_in);
@@ -85,6 +85,7 @@ int main(int argc,char**argv)
     int sock_opt = 1;
     int brn_state = BRN_NOTCONN;
     pid_t pid;
+    int status;
 
     struct addr_cmp sock_aff[MAX_AFF];
     int nb_aff = 0;
@@ -151,6 +152,7 @@ int main(int argc,char**argv)
         perror("socket");
         exit(-1);
     }
+
     addr_loc_udp.sin_family = AF_INET;
     addr_loc_udp.sin_port = htons((uint16_t)atoi(argv[2]));
     addr_loc_udp.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -196,6 +198,7 @@ int main(int argc,char**argv)
 
         if(FD_ISSET(sock_udp,&rfds)) //connexion udp
         {
+            printf("connection udp recu\n");
             pid = fork();
             if(pid == -1)
             {
@@ -205,14 +208,23 @@ int main(int argc,char**argv)
             }
             else if(!pid)
             {
-                if((nb_read = recvfrom(sock_udp,buf,BUFSIZE,0,(struct sockaddr*)&sock_sup.addr_cmp,&sockaddr_in_size))<0)
+                bzero(buf,BUFSIZE);
+                printf("on est dans le fils\n");
+                if((nb_read = recvfrom(sock_udp,buf,BUFSIZE,0,(struct sockaddr*)&sock_sup.addr_cmp,(socklen_t*)&sockaddr_in_size))<0)
                 {
                     perror("recvfrom");
                     exit(errno);
                 }
+                printf(" le fil a recu %s\n",buf);
+                if((sock_udp_send = socket(AF_INET,SOCK_DGRAM,0)) == -1)
+                {
+                    printf("erreur lors de la creation de la socket UDP\n");
+                    perror("socket");
+                    exit(-1);
+                }
                 for(i = 0;i<nb_ght;i++)
                 {
-                    if((nb_write = sendto(sock_udp,buf,strlen(buf),0,(const struct sockaddr*)&sock_ght[i].addr_cmp_udp,sockaddr_in_size)) != strlen(buf))
+                    if((nb_write = sendto(sock_udp_send,buf,strlen(buf),0,(const struct sockaddr*)&sock_ght[i].addr_cmp_udp,(unsigned int)sockaddr_in_size)) != strlen(buf))
                     {
 
 
@@ -221,12 +233,39 @@ int main(int argc,char**argv)
                         exit(-1);
                     }
                 }
+                close(sock_udp_send);
+                close(sock_udp);
+                exit(0);
 
             }
-            else
-            {
-               waitpid(-1,NULL,0); //TODO gere le statut de retour
+            else {
+                printf("on est dans le pere\n");
+                waitpid(-1, &status, 0);
+                if(WIFEXITED(status))
+                {
+                    printf("the child process return with %d\n",WEXITSTATUS(status));
+                }
             }
+            /*bzero(buf,BUFSIZE);
+            if((nb_read = recvfrom(sock_udp,buf,BUFSIZE,0,(struct sockaddr*)&sock_sup.addr_cmp,(socklen_t*)&sockaddr_in_size))<=0)
+            {
+                perror("recvfrom");
+                exit(errno);
+            }
+            printf(" le fil a recu %s\n",buf);
+            for(i = 0;i<nb_ght;i++)
+            {
+                if((nb_write = sendto(sock_udp,buf,strlen(buf),0,(const struct sockaddr*)&sock_ght[i].addr_cmp_udp,(unsigned int)sockaddr_in_size)) != strlen(buf))
+                {
+
+
+                    printf("erreur lors de l'envoie du message %s au guichet %d\n",buf,i);
+                    perror("sendto");
+                    exit(-1);
+                }
+            }*/
+
+
         }
         if(FD_ISSET(STDIN_FILENO,&rfds))
         {   bzero(buf,BUFSIZE);
@@ -311,7 +350,7 @@ int main(int argc,char**argv)
                     sock_ght[nb_ght].sock = sock_service;
                     sock_ght[nb_ght].addr_cmp = addr_clt;
                     sock_ght[nb_ght].addr_cmp_udp = addr_clt;
-                    sock_ght[nb_ght].addr_cmp_udp.sin_port = htons((uint16_t)atoi(argv[2])); //c pas bo
+                    sock_ght[nb_ght].addr_cmp_udp.sin_port = htons((uint16_t)atoi(argv[2])+(uint16_t)atoi(buf)); //c pas bo du tous du tous
                     strcpy(sock_ght[i].num,buf); //numero du guichet
                     nb_ght++;
                     printf("20 : nouveau guichet ajouté\n");

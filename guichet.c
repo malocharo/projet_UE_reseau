@@ -79,8 +79,14 @@ int main(int argc,char **argv) {
     hote_udp = gethostbyname(argv[2]);
 
     addr_serv_udp.sin_addr = *(struct in_addr*)hote_udp->h_addr;
-    addr_serv_udp.sin_port = htons((uint16_t)atoi(argv[3]));
+    addr_serv_udp.sin_port = htons((uint16_t)atoi(argv[3])+ (uint16_t)atoi(num_gui)); //ugly
     addr_serv_udp.sin_family = AF_INET;
+    if(bind(sock_udp,(struct sockaddr*)&addr_serv_udp,sizeof(addr_serv_udp)) == -1)
+    {
+        printf("erreur lors du bind de la socket udp\n");
+        perror("bind");
+        exit(-1);
+    }
 
     // envoie de l identifiant "ght" pour identification aupres du serv gestion
     if((nb_write = write(sock,GHT_IDENTIFIER,strlen(GHT_IDENTIFIER)) != strlen(GHT_IDENTIFIER)))
@@ -108,10 +114,11 @@ int main(int argc,char **argv) {
     while(1)
     {
         fflush(stdin);
+        bzero(msg_sup,BUFSIZE);
         nb_read = recvfrom(sock_udp,msg_sup,BUFSIZE,MSG_DONTWAIT,(struct sockaddr*)&addr_serv_udp,&sockaddr_size);
         if(nb_read == EAGAIN || nb_read == EWOULDBLOCK)
         {}
-        else
+        else if(strlen(msg_sup) > 0)
         {
             printf("message du superviseur : %s\n",msg_sup);
         }

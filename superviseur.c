@@ -58,7 +58,7 @@ int main(int argc, char **argv)
             scanf("%s", buf);
         } while (strlen(buf) == 0);
 
-        if(sendto(sock,buf,strlen(buf),0,(struct sockaddr*)&gest_addr,gest_addr_size) != strlen(buf))
+        if(sendto(sock,buf,strlen(buf),0,(struct sockaddr*)&gest_addr,(unsigned int)gest_addr_size) != strlen(buf))
         {
             printf("erreur lors de l'envoi du message %s\n",buf);
             perror("sendto");
