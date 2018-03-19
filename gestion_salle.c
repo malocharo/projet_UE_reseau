@@ -77,7 +77,7 @@ int main(int argc,char**argv)
     ssize_t nb_read;
     ssize_t nb_write;
     size_t length_num_gui;
-    size_t length_name_clt;
+    size_t length_name_clt = 0;
     int clt;
     int size_addr_clt = sizeof(addr_clt);
     int uid = 0;
@@ -306,7 +306,7 @@ int main(int argc,char**argv)
                 perror("accept");
                 exit(-1);
             }
-
+            bzero(buf,BUFSIZE);
             if((nb_read = read(sock_service,buf,GHT_SIZE_IDENTIFIER))<0)
             {
                 printf("14 : erreur lors du read\n");

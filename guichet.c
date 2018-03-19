@@ -78,7 +78,7 @@ int main(int argc,char **argv) {
     }
     hote_udp = gethostbyname(argv[2]);
 
-    addr_serv_udp.sin_addr = *(struct in_addr*)hote_udp->h_addr;
+    addr_serv_udp.sin_addr.s_addr = htonl(INADDR_ANY);
     addr_serv_udp.sin_port = htons((uint16_t)atoi(argv[3])+ (uint16_t)atoi(num_gui)); //ugly
     addr_serv_udp.sin_family = AF_INET;
     if(bind(sock_udp,(struct sockaddr*)&addr_serv_udp,sizeof(addr_serv_udp)) == -1)
@@ -177,6 +177,7 @@ int main(int argc,char **argv) {
                 perror("recp");
                 exit(-1);
             }
+            bzero(usr.nom,BUFSIZE);
             if((nb_read = read(sock,&usr.nom,BUFSIZE))<0)
             {
                 printf("erreur reception donne client\n");
