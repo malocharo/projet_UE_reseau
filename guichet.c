@@ -19,8 +19,8 @@
 
 
 int main(int argc,char **argv) {
-    char num_gui[BUFSIZE_MIN];
-    char msg_sup[BUFSIZE];
+    char num_gui[BUFSIZE_MIN]; //buffer contenant le numero de guichet
+    char msg_sup[BUFSIZE]; //buffer contenant le message du sup
     size_t length_num_gui;
     int sock,sock_udp;
     uint16_t port;
@@ -32,7 +32,7 @@ int main(int argc,char **argv) {
     int sockaddr_size = sizeof(struct sockaddr_in);
     ssize_t nb_write;
     ssize_t nb_read;
-    char buf_recv[BUFSIZE];
+    char buf_recv[BUFSIZE]; //buffer pour recevoir les messages de gestion_salle
     int dmd_lib = 1;
     struct user usr;
 
@@ -79,7 +79,7 @@ int main(int argc,char **argv) {
     hote_udp = gethostbyname(argv[2]);
 
     addr_serv_udp.sin_addr.s_addr = htonl(INADDR_ANY);
-    addr_serv_udp.sin_port = htons((uint16_t)atoi(argv[3])+ (uint16_t)atoi(num_gui)); //ugly
+    addr_serv_udp.sin_port = htons((uint16_t)atoi(argv[3])+ (uint16_t)atoi(num_gui));
     addr_serv_udp.sin_family = AF_INET;
     if(bind(sock_udp,(struct sockaddr*)&addr_serv_udp,sizeof(addr_serv_udp)) == -1)
     {
@@ -96,7 +96,7 @@ int main(int argc,char **argv) {
         exit(1);
     }
 
-    //Envoye son numéro
+    //Envoye longueur numéro
     length_num_gui = strlen(num_gui);
     if((nb_write = write(sock,&length_num_gui,sizeof(int))) != sizeof(int))
     {
@@ -104,17 +104,18 @@ int main(int argc,char **argv) {
         perror("write");
         exit(1);
     }
+    //Envoye numéro
     if((nb_write = write(sock,num_gui,strlen(num_gui)) != strlen(num_gui)))
     {
         printf("erreur à l'envoi de l'identifiant\n");
         perror("write");
         exit(1);
     }
-    printf("identifiant envoyé %s\n",num_gui);
     while(1)
     {
         fflush(stdin);
         bzero(msg_sup,BUFSIZE);
+        //reception des données du superviseur
         nb_read = recvfrom(sock_udp,msg_sup,BUFSIZE,MSG_DONTWAIT,(struct sockaddr*)&addr_serv_udp,&sockaddr_size);
         if(nb_read == EAGAIN || nb_read == EWOULDBLOCK)
         {}
@@ -138,11 +139,11 @@ int main(int argc,char **argv) {
             {
                 perror("write socket;");
             }
-            exit(1); //TODO handle & retry
+            exit(1);
         }
         bzero(buf_recv,BUFSIZE);
         nb_read = read(sock,buf_recv,GHT_SIZE_CONST); // égal a 1 sinon pas de limite de message toussa
-        //printf("recv %s after asking for client\n",buf_recv);
+
         if(nb_read<0)
         {
             printf("erreur lors de la reception\n");
@@ -165,18 +166,21 @@ int main(int argc,char **argv) {
         else if(strcmp(buf_recv,GEST_CONFCLT) == 0) // il y'a un client
         {
             printf("il y'a un client reception des infos\n");
+            //reception de l'id
             if((nb_read = read(sock,&usr.id,sizeof(int)))<0)
             {
                 printf("erreur reception donne client\n");
                 perror("recp");
                 exit(-1);
             }
+            //reception de l'indice user
             if((nb_read = read(sock,&ind_clt,sizeof(int)))<0)
             {
                 printf("erreur reception donne client\n");
                 perror("recp");
                 exit(-1);
             }
+            //reception nom user
             bzero(usr.nom,BUFSIZE);
             if((nb_read = read(sock,&usr.nom,BUFSIZE))<0)
             {
@@ -185,7 +189,7 @@ int main(int argc,char **argv) {
                 exit(-1);
             }
 
-            printf("client : %s %d\n",usr.nom,usr.id);
+            printf("client : %s%d\n",usr.nom,usr.id);
             printf("Ecrire 'ok' pour valider la présence du client\n");
             scanf("%s",buf_recv);
             while(strcmp(buf_recv,"ok") != 0)
@@ -202,21 +206,18 @@ int main(int argc,char **argv) {
                 {
                     perror("write socket;");
                 }
-                exit(1); //TODO handle & retry
+                exit(1);
             }
             nb_write = write(sock,&ind_clt,sizeof(int)); //=> envoie indice client pour enlever des afficheurs
             if(nb_write != sizeof(int))
             {
                 printf("erreur lors de l'envoie de la demande de client\n");
                 perror("write socket;");
-                exit(1); //TODO handle & retry
+                exit(1);
             }
 
         }
 
     }
-
-
-
 
 }

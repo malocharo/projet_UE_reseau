@@ -30,9 +30,8 @@ int main(int argc,char **argv)
     int boolean = 1;
     ssize_t nb_write;
     ssize_t id_read;
-
-
     struct user usr;
+
     if(argc<3)
     {
         printf("usage %s port ip\n",argv[0]);
@@ -71,14 +70,14 @@ int main(int argc,char **argv)
         perror("write");
         exit(1);
     }
-
+    //reception de l'uid permet de maintenir le compte en cas de deconnection de la borne
     if((id_read = read(sock,&uid,sizeof(int)))<0)
     {
         printf("error reception uid\n");
         perror("read");
         exit(-1);
     }
-    printf("recu uid = %d\n",uid);
+
     while(boolean)
     {
         printf("Votre nom svp :\n");
@@ -115,7 +114,7 @@ int main(int argc,char **argv)
             exit(1);
         }
 
-        printf("donnees envoyees\n");
+
     }
     close(sock);
 

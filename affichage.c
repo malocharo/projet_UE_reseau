@@ -18,7 +18,7 @@
 #include "user.h"
 #include "const.h"
 
-
+//structure globale mis a jour pour l'affichage
 struct aff{
     struct user usr;
     char nb_guichet[BUFSIZE];
@@ -107,12 +107,13 @@ int main(int argc, char**argv)
     display();
     while(1)
     {   bzero(buf,BUFSIZE);
+        //reception d'un code pour determiner l'action à effectuer
         if ((nb_read = read(sock, buf, GHT_SIZE_CONST)) != GHT_SIZE_CONST) {
             printf("erreur lors de la reception du msg\n");
             perror("read");
             exit(1);
         }
-        //printf("receive by afficheur : %s\n",buf);
+
         if (strcmp(buf,AFF_ASKADD) == 0)//envoi d'une demande d'affichage
         {
             //reception de l id
