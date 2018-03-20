@@ -112,7 +112,7 @@ int main(int argc, char**argv)
             perror("read");
             exit(1);
         }
-        printf("receive by afficheur : %s\n",buf);
+        //printf("receive by afficheur : %s\n",buf);
         if (strcmp(buf,AFF_ASKADD) == 0)//envoi d'une demande d'affichage
         {
             //reception de l id

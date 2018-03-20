@@ -111,7 +111,7 @@ int main(int argc,char**argv)
 
     if(argc != 3)
     {
-        printf("0 : usage : %s port TCP port UPD\n",argv[0]);
+        printf("usage : %s port TCP port UPD\n",argv[0]);
         exit(1);
     }
     if((sock_acceuil = socket(AF_INET,SOCK_STREAM,0))==-1)
@@ -180,7 +180,7 @@ int main(int argc,char**argv)
         for(i=0;i<nb_ght;i++)
             FD_SET(sock_ght[i].sock,&rfds); //socket des guichets
         FD_SET(sock_udp,&rfds);
-        printf("4.1 : select en place\n");
+        printf("select en place\n");
 
         retval = select(FD_SETSIZE,&rfds,NULL,NULL,NULL);
 
@@ -226,8 +226,6 @@ int main(int argc,char**argv)
                 {
                     if((nb_write = sendto(sock_udp_send,buf,strlen(buf),0,(const struct sockaddr*)&sock_ght[i].addr_cmp_udp,(unsigned int)sockaddr_in_size)) != strlen(buf))
                     {
-
-
                         printf("erreur lors de l'envoie du message %s au guichet %d\n",buf,i);
                         perror("sendto");
                         exit(-1);
@@ -243,7 +241,9 @@ int main(int argc,char**argv)
                 waitpid(-1, &status, 0);
                 if(WIFEXITED(status))
                 {
-                    printf("the child process return with %d\n",WEXITSTATUS(status));
+                    printf("fils termine normalement: status = %d\n",WEXITSTATUS(status));
+                } else{
+                    printf("Erreur le fils ce termine anormalement\n");
                 }
             }
             /*bzero(buf,BUFSIZE);
@@ -270,27 +270,31 @@ int main(int argc,char**argv)
         if(FD_ISSET(STDIN_FILENO,&rfds))
         {   bzero(buf,BUFSIZE);
             buf[0] = (char)getchar();
-            printf("6 : read : %c\n",buf[0]);
+            printf("read : %c\n",buf[0]);
 
             if(buf[0] == 'i')
             {
-                printf("7 : Types     adresse       port    opt\n");
+                printf("Types     adresse       port    opt\n");
+
+                if(strcmp(inet_ntoa(sock_brn.addr_cmp.sin_addr),"0.0.0.0")){
+                    printf("borne  %s   %d\n",inet_ntoa(sock_brn.addr_cmp.sin_addr),sock_brn.addr_cmp.sin_port);
+                }
                 for(i = 0;i<nb_aff;i++)
-                    printf("8 : afficheur  %s   %d\n",inet_ntoa(sock_aff[i].addr_cmp.sin_addr),sock_aff[i].addr_cmp.sin_port);
+                    printf("afficheur  %s   %d\n",inet_ntoa(sock_aff[i].addr_cmp.sin_addr),sock_aff[i].addr_cmp.sin_port);
                 for(i = 0;i<nb_ght;i++)
-                    printf("9 : guichet    %s   %d    %s\n",inet_ntoa(sock_ght[i].addr_cmp.sin_addr),sock_ght[i].addr_cmp.sin_port,sock_ght[i].num);
+                    printf("guichet    %s   %d    %s\n",inet_ntoa(sock_ght[i].addr_cmp.sin_addr),sock_ght[i].addr_cmp.sin_port,sock_ght[i].num);
             }
             else if(buf[0] == 'q')
             {
-                exit(0); // ouais bon faut faire mieux sans doute
+                exit(0);
             }
             else if(buf[0] == 'l')
             {
-                printf("10 : Il y'a %d personnes en attente\n",nb_usr);
+                printf("Il y'a %d personnes en attente\n",nb_usr);
                 for(i = 0;i<NB_MAX_PENDINGQUEUE;i++)
                 {
                     if(strlen(usr_tab[i].nom) != 0)
-                        printf("11 : %s%d\n",usr_tab[i].nom,usr_tab[i].id);
+                        printf("%s%d\n",usr_tab[i].nom,usr_tab[i].id);
                 }
             }
             continue;
@@ -299,7 +303,7 @@ int main(int argc,char**argv)
         if(FD_ISSET(sock_acceuil,&rfds))// nouvelle connexion gestion d erreur type envoie conf ?
         {
             sock_service = accept(sock_acceuil,(struct sockaddr*)&addr_clt,(socklen_t *)&size_addr_clt);
-            printf("12 : nouvelle connexion\n");
+            printf("nouvelle connexion\n");
             if(sock_service == -1)
             {
                 printf("13 : erreur lors de l'accept\n");
@@ -313,7 +317,7 @@ int main(int argc,char**argv)
                 perror("read");
                 exit(-1);
             }
-            printf("15 : receive %s\n",buf);
+            printf("receive %s\n",buf);
 
             if(strcmp(buf,BRN_IDENTIFIER)==0)
             {
@@ -327,7 +331,7 @@ int main(int argc,char**argv)
                 sock_brn.sock = sock_service;
                 sock_brn.addr_cmp = addr_clt;
                 brn_state  = BRN_CONN;
-                printf("17 : nouvelle borne ajouté uid = %d\n",uid);
+                printf("nouvelle borne ajouté uid = %d\n",uid);
             }
             else if(strcmp(buf,GHT_IDENTIFIER)==0)
             {
@@ -353,7 +357,7 @@ int main(int argc,char**argv)
                     sock_ght[nb_ght].addr_cmp_udp.sin_port = htons((uint16_t)atoi(argv[2])+(uint16_t)atoi(buf)); //c pas bo du tous du tous
                     strcpy(sock_ght[i].num,buf); //numero du guichet
                     nb_ght++;
-                    printf("20 : nouveau guichet ajouté\n");
+                    printf("nouveau guichet ajouté\n");
                 }
             }
             else if(strcmp(buf,AFF_IDENTIFIER)==0)
@@ -363,7 +367,7 @@ int main(int argc,char**argv)
                     sock_aff[nb_aff].sock = sock_service;
                     sock_aff[nb_aff].addr_cmp = addr_clt;
                     nb_aff++;
-                    printf("21 : nouvelle afficheur ajouté\n");
+                    printf("nouvelle afficheur ajouté\n");
                 }
             }
 
@@ -387,7 +391,7 @@ int main(int argc,char**argv)
                 perror("read");
                 exit(-1);
             }
-            printf("24 : recu : %s %d depuis la borne\n",usr_tab[usr_brn_sup].nom,usr_tab[usr_brn_sup].id);
+            printf("recu : %s %d depuis la borne\n",usr_tab[usr_brn_sup].nom,usr_tab[usr_brn_sup].id);
 
 
             //Si c'est la fin de la journée (On coupe proprement)
@@ -397,7 +401,7 @@ int main(int argc,char**argv)
 
             if(nb_read == 0)// socket fermé par la borne
             {
-                printf("25 : deconnexion de la borne d'acceuil\n");
+                printf("deconnexion de la borne d'acceuil\n");
                 brn_state = BRN_NOTCONN;
 
                 //exit(-1);
@@ -436,10 +440,10 @@ int main(int argc,char**argv)
             {   bzero(buf,BUFSIZE);
                 if((nb_read = read(sock_ght[i].sock,buf,GHT_SIZE_CONST)) >= 0)// erreur
                 {
-                    printf("28 : recu : %s par guichet %d\n",buf,i);
+                    printf("recu : %s par guichet %d\n",buf,i);
                     if(nb_read == 0)// connexion fermée par le guichet
                     {
-                        printf("29 : deconnection du guichet %s\n",inet_ntoa(sock_ght[i].addr_cmp.sin_addr));
+                        printf("deconnection du guichet %s\n",inet_ntoa(sock_ght[i].addr_cmp.sin_addr));
                         remove_socket(i,sock_ght,&nb_ght);
                     }
                     if(strcmp(buf,GHT_ASKCLT)==0)//demande d'un client

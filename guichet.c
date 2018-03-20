@@ -48,14 +48,14 @@ int main(int argc,char **argv) {
 
     if((sock = socket(AF_INET,SOCK_STREAM,0)) == -1)
     {
-        printf("Impossible de créer la socket\n");
+        printf("Erreur impossible de créer la socket\n");
         perror("socket");
         exit(-1);
     }
 
     if((hote = gethostbyname(argv[2]))==NULL)
     {
-        printf("Impossible de trouver l'hote\n");
+        printf("Erreur impossible de trouver l'hote\n");
         perror("gethostbyname");
         exit(-1);
     }
@@ -142,7 +142,7 @@ int main(int argc,char **argv) {
         }
         bzero(buf_recv,BUFSIZE);
         nb_read = read(sock,buf_recv,GHT_SIZE_CONST); // égal a 1 sinon pas de limite de message toussa
-        printf("recv %s after asking for client\n",buf_recv);
+        //printf("recv %s after asking for client\n",buf_recv);
         if(nb_read<0)
         {
             printf("erreur lors de la reception\n");

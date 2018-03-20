@@ -35,6 +35,7 @@ int main(int argc, char **argv)
     sock = socket(AF_INET,SOCK_DGRAM,0);
     if(sock == -1)
     {
+        printf("Erreur impossible de créer la socket\n");
         perror("socket");
         exit(-1);
     }
@@ -42,7 +43,7 @@ int main(int argc, char **argv)
     host = gethostbyname(argv[2]);
     if(host == NULL)
     {
-        printf("host inconnu %s",argv[2]);
+        printf("Erreur host inconnu %s",argv[2]);
         perror("gethostbyname");
         exit(-1);
     }
